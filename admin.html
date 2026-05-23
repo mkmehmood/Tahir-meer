@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AWC Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=Cinzel:wght@600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles.css"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png"/>
+<meta name="theme-color" content="#1a6b4a"/>
+</head>
+<body class="admin-body">
+<div class="admin-topbar">
+<div style="display:flex;align-items:center;gap:10px">
+<button class="admin-menu-btn" id="adminMenuBtn" aria-label="Toggle sidebar"><span></span><span></span><span></span></button>
+<div class="ab-logo"><span>AWC</span> Admin Panel</div>
+</div>
+<div class="ab-actions">
+<div class="ab-save-status" id="saveStatus">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+Saved
+</div>
+<a href="index.html" target="_blank">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+View Site
+</a>
+<button class="ab-btn" onclick="doExport()">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+Export DB
+</button>
+<button class="ab-btn" onclick="doReset()" style="color:#e57373">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+Reset
+</button>
+</div>
+</div>
+<div class="admin-overlay" id="adminOverlay"></div>
+<div class="admin-layout">
+<aside class="admin-sidebar">
+<div class="sidebar-section">Dashboard</div>
+<div class="sidebar-link active" data-panel="dashboard">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Overview
+</div>
+<div class="sidebar-section">Site</div>
+<div class="sidebar-link" data-panel="identity">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></span>Identity &amp; Logo
+</div>
+<div class="sidebar-link" data-panel="hero">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>Hero Section
+</div>
+<div class="sidebar-link" data-panel="about">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>About Section
+</div>
+<div class="sidebar-section">Content</div>
+<div class="sidebar-link" data-panel="programs">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/></svg></span>Programs
+</div>
+<div class="sidebar-link" data-panel="leadership">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Leadership
+</div>
+<div class="sidebar-link" data-panel="events">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Events
+</div>
+<div class="sidebar-link" data-panel="gallery">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>Gallery
+</div>
+<div class="sidebar-link" data-panel="pages">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>Pages
+</div>
+<div class="sidebar-link" data-panel="cta">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>CTA / Membership
+</div>
+<div class="sidebar-link" data-panel="footer">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>Footer
+</div>
+<div class="sidebar-section">Settings</div>
+<div class="sidebar-link" data-panel="contact">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>Contact Info
+</div>
+<div class="sidebar-link" data-panel="bank">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg></span>Bank Details
+</div>
+<div class="sidebar-section">Data</div>
+<div class="sidebar-link" data-panel="submissions">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>Submissions <span id="subBadge" style="background:var(--green);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;margin-left:4px;display:none"></span>
+</div>
+<div class="sidebar-link" data-panel="messages">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>Messages
+</div>
+</aside>
+<main class="admin-main">
+<div id="panel-dashboard" class="admin-panel active">
+<div class="preview-bar">
+<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg> SQLite offline database — all changes persist in IndexedDB</span>
+<a href="index.html" target="_blank">Open Website ↗</a>
+</div>
+<p class="ap-title">Dashboard</p>
+<p class="ap-sub">All changes are written instantly to SQLite and reflected on the website.</p>
+<div class="ag ag3" style="margin-bottom:24px">
+<div class="astat"><span class="as-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><div><div class="as-num" id="ds-members">—</div><div class="as-lbl">Members stat</div></div></div>
+<div class="astat"><span class="as-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/></svg></span><div><div class="as-num" id="ds-progs">—</div><div class="as-lbl">Programs</div></div></div>
+<div class="astat"><span class="as-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span><div><div class="as-num" id="ds-subs">0</div><div class="as-lbl">Submissions</div></div></div>
+</div>
+<div class="ag">
+<div class="acard"><h4>Quick Edit</h4>
+<div class="af"><label>Site Name</label><input id="q-siteName"/></div>
+<div class="af"><label>Phone</label><input id="q-contactPhone"/></div>
+<div class="af"><label>Email</label><input id="q-contactEmail"/></div>
+<div class="asr"><button class="save-btn" id="qSaveBtn" onclick="quickSave()">Save</button></div>
+</div>
+<div class="acard"><h4>Recent Submissions</h4><div id="dashSubs" style="font-size:13px;color:rgba(255,255,255,.45)">Loading…</div></div>
+</div>
+</div>
+<div id="panel-identity" class="admin-panel">
+<p class="ap-title">Identity &amp; Logo</p>
+<p class="ap-sub">Upload your logo and edit the site and regional organisation names.</p>
+<div class="ag">
+<div class="acard"><h4>Logo Upload</h4>
+<div class="af"><label>Upload Logo Image</label><input type="file" id="logoFile" accept="image/*" onchange="handleLogoUpload(this)"/></div>
+<img id="logoPreview" class="logo-preview" src="" alt="Logo Preview"/>
+<p style="font-size:12px;color:rgba(255,255,255,.4);margin-top:10px">Logo is stored as base64 in SQLite and displayed in the header instead of the AWC text icon.</p>
+<div class="asr"><button class="save-btn" onclick="clearLogo()">Remove Logo</button></div>
+</div>
+<div class="acard"><h4>Site Names</h4>
+<div class="af"><label>Main Site Name</label><input id="e-siteName"/></div>
+<div class="af"><label>Site Tagline</label><input id="e-siteTagline"/></div>
+<div class="af"><label>Regional Sub-Name (Bannu)</label><input id="e-siteSubName"/></div>
+<div class="af"><label>Regional Sub-Tagline</label><input id="e-siteSubTagline"/></div>
+<div class="asr"><button class="save-btn" onclick="saveFields(['siteName','siteTagline','siteSubName','siteSubTagline'],this)">Save Identity</button></div>
+</div>
+</div>
+</div>
+<div id="panel-hero" class="admin-panel">
+<p class="ap-title">Hero Section</p>
+<p class="ap-sub">Edit the main banner content shown to visitors.</p>
+<div class="ag">
+<div class="acard"><h4>Hero Text</h4>
+<div class="af"><label>Badge Text</label><input id="e-heroBadge"/></div>
+<div class="af"><label>Main Title</label><input id="e-heroTitle"/></div>
+<div class="af"><label>Sub Heading</label><input id="e-heroSub"/></div>
+<div class="af"><label>Tagline</label><textarea id="e-heroTagline" rows="3"></textarea></div>
+<div class="asr"><button class="save-btn" onclick="saveFields(['heroBadge','heroTitle','heroSub','heroTagline'],this)">Save Hero</button></div>
+</div>
+<div class="acard"><h4>About the Language System</h4>
+<p style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.9">All content is stored once in English here. The <strong style="color:var(--gold-lt)">lang.js</strong> library contains full English and Urdu dictionaries covering every UI string.<br><br>When a visitor clicks the language toggle, the entire DOM is replaced with the Urdu version from the dictionary — no API calls, no delays, works fully offline.<br><br>Content you enter here (titles, descriptions, etc.) appears as-is in English mode. The static UI labels (nav, buttons, form fields, etc.) switch automatically via the dictionary.</p>
+</div>
+</div>
+</div>
+<div id="panel-about" class="admin-panel">
+<p class="ap-title">About Section</p>
+<div class="ag">
+<div class="acard"><h4>About Text</h4>
+<div class="af"><label>Title</label><input id="e-aboutTitle"/></div>
+<div class="af"><label>Subtitle</label><input id="e-aboutSubtitle"/></div>
+<div class="af"><label>Paragraph 1</label><textarea id="e-aboutP1" rows="4"></textarea></div>
+<div class="af"><label>Paragraph 2</label><textarea id="e-aboutP2" rows="4"></textarea></div>
+<div class="af"><label>Paragraph 3</label><textarea id="e-aboutP3" rows="4"></textarea></div>
+<div class="asr"><button class="save-btn" onclick="saveFields(['aboutTitle','aboutSubtitle','aboutP1','aboutP2','aboutP3'],this)">Save About</button></div>
+</div>
+<div class="acard"><h4>Stats &amp; Chairman</h4>
+<div class="af"><label>Members Stat (e.g. 500+)</label><input id="e-statMembers"/></div>
+<div class="af"><label>Programs Stat</label><input id="e-statPrograms"/></div>
+<div class="af"><label>Cities Stat</label><input id="e-statCities"/></div>
+<hr class="hr-div"/>
+<div class="af"><label>Chairman Name</label><input id="e-chairmanName"/></div>
+<div class="af"><label>Chairman Quote</label><textarea id="e-chairmanQuote" rows="3"></textarea></div>
+<div class="asr"><button class="save-btn" onclick="saveFields(['statMembers','statPrograms','statCities','chairmanName','chairmanQuote'],this)">Save Stats</button></div>
+</div>
+</div>
+</div>
+<div id="panel-programs" class="admin-panel">
+<p class="ap-title">Programs / Initiatives</p>
+<p class="ap-sub">Edit program cards shown on the website. Stored in the SQLite <code style="background:#0a1210;padding:2px 6px;border-radius:4px;font-size:11px">programs</code> table.</p>
+<div class="acard" style="margin-bottom:18px"><h4>Section Header</h4>
+<div class="ag"><div class="af"><label>Title</label><input id="e-programsTitle"/></div><div class="af"><label>Description</label><input id="e-programsDesc"/></div></div>
+<div class="asr"><button class="save-btn" onclick="saveFields(['programsTitle','programsDesc'],this)">Save</button></div>
+</div>
+<div id="programsEditor"></div>
+<button class="add-row-btn" onclick="addProgram()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Program</button>
+</div>
+<div id="panel-leadership" class="admin-panel">
+<p class="ap-title">Leadership Team</p>
+<p class="ap-sub">Stored in the SQLite <code style="background:#0a1210;padding:2px 6px;border-radius:4px;font-size:11px">leaders</code> table.</p>
+<div class="acard" style="margin-bottom:18px"><div class="af"><label>Section Title</label><input id="e-leadershipTitle"/></div><div class="asr"><button class="save-btn" onclick="saveFields(['leadershipTitle'],this)">Save</button></div></div>
+<div id="leadersEditor"></div>
+<button class="add-row-btn" onclick="addLeader()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Leader</button>
+</div>
+<div id="panel-events" class="admin-panel">
+<p class="ap-title">Events &amp; Programs</p>
+<p class="ap-sub">Stored in the SQLite <code style="background:#0a1210;padding:2px 6px;border-radius:4px;font-size:11px">events</code> table.</p>
+<div class="acard" style="margin-bottom:18px"><div class="af"><label>Section Title</label><input id="e-eventsTitle"/></div><div class="asr"><button class="save-btn" onclick="saveFields(['eventsTitle'],this)">Save</button></div></div>
+<div id="eventsEditor"></div>
+<button class="add-row-btn" onclick="addEvent()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Event</button>
+</div>
+<div id="panel-gallery" class="admin-panel">
+<p class="ap-title">Gallery</p>
+<p class="ap-sub">Upload photos for the gallery section. Images stored as base64 in SQLite.</p>
+<div class="acard" style="margin-bottom:18px"><h4>Section Header</h4>
+<div class="ag"><div class="af"><label>Gallery Title</label><input id="e-galleryTitle"/></div><div class="af"><label>Gallery Description</label><input id="e-galleryDesc"/></div></div>
+<div class="asr"><button class="save-btn" onclick="saveFields(['galleryTitle','galleryDesc'],this)">Save</button></div>
+</div>
+<div class="acard" style="margin-bottom:18px"><h4>Upload Photos</h4>
+<div class="af"><label>Select Images (multiple)</label><input type="file" id="galleryUpload" accept="image/*" multiple onchange="handleGalleryUpload(this)"/></div>
+<div class="af"><label>Caption for uploaded images (optional)</label><input id="galleryCaption" placeholder="e.g. AWC Bannu Annual Gathering 2025"/></div>
+<p style="font-size:12px;color:rgba(255,255,255,.4);margin-top:8px">Images are resized to max 800px and stored in SQLite. Recommended: JPG/PNG under 2MB each.</p>
+</div>
+<div id="galleryAdminGrid" class="gallery-admin-grid"></div>
+</div>
+<div id="panel-pages" class="admin-panel">
+<p class="ap-title">Pages</p>
+<p class="ap-sub">These appear as footer links (Blog, History, Documentation, Environmental, Town Gallery, Department). Each opens in a modal on the public site.</p>
+<div id="pagesEditor"></div>
+</div>
+<div id="panel-cta" class="admin-panel">
+<p class="ap-title">CTA / Membership &amp; Donation</p>
+<div class="ag">
+<div class="acard"><h4>Membership Card</h4>
+<div class="af"><label>Title</label><input id="e-membershipTitle"/></div>
+<div class="af"><label>Description</label><textarea id="e-membershipDesc" rows="3"></textarea></div>
+<div class="asr"><button class="save-btn" onclick="saveFields(['membershipTitle','membershipDesc'],this)">Save</button></div>
+</div>
+<div class="acard"><h4>Donation Card</h4>
+<div class="af"><label>Title</label><input id="e-donateTitle"/></div>
+<div class="af"><label>Description</label><textarea id="e-donateDesc" rows="3"></textarea></div>
+<div class="asr"><button class="save-btn" onclick="saveFields(['donateTitle','donateDesc'],this)">Save</button></div>
+</div>
+</div>
+</div>
+<div id="panel-footer" class="admin-panel">
+<p class="ap-title">Footer</p>
+<div class="acard">
+<div class="af"><label>Footer Description</label><textarea id="e-footerDesc" rows="4"></textarea></div>
+<div class="af"><label>Copyright Text</label><input id="e-footerCopy"/></div>
+<div class="asr"><button class="save-btn" onclick="saveFields(['footerDesc','footerCopy'],this)">Save Footer</button></div>
+</div>
+</div>
+<div id="panel-contact" class="admin-panel">
+<p class="ap-title">Contact Info</p>
+<div class="ag">
+<div class="acard"><h4>Contact Details</h4>
+<div class="af"><label>Address</label><textarea id="e-contactAddress" rows="3"></textarea></div>
+<div class="af"><label>Opening Hours</label><input id="e-contactHours"/></div>
+<div class="af"><label>Phone (WhatsApp)</label><input id="e-contactPhone"/></div>
+<div class="af"><label>Email</label><input id="e-contactEmail"/></div>
+<div class="asr"><button class="save-btn" onclick="saveFields(['contactAddress','contactHours','contactPhone','contactEmail'],this)">Save Contact</button></div>
+</div>
+<div class="acard"><h4>Tip</h4>
+<p style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.9">Phone number is used for WhatsApp links throughout the site. Format: +92XXXXXXXXXX<br><br>Email appears in the contact section and donation modal instructions.</p>
+</div>
+</div>
+</div>
+<div id="panel-bank" class="admin-panel">
+<p class="ap-title">Bank &amp; Payment Details</p>
+<p class="ap-sub">Shown only inside the Donation modal. Stored in SQLite.</p>
+<div class="ag">
+<div class="acard"><h4>Bank Transfer</h4>
+<div class="af"><label>Bank Name</label><input id="e-bankName"/></div>
+<div class="af"><label>Account Title</label><input id="e-bankTitle"/></div>
+<div class="af"><label>Account Number</label><input id="e-bankAccount"/></div>
+<div class="af"><label>IBAN</label><input id="e-bankIBAN"/></div>
+<div class="af"><label>Branch Code</label><input id="e-bankBranch"/></div>
+<div class="asr"><button class="save-btn" onclick="saveFields(['bankName','bankTitle','bankAccount','bankIBAN','bankBranch'],this)">Save Bank</button></div>
+</div>
+<div class="acard"><h4>Easypaisa</h4>
+<div class="af"><label>Account Title</label><input id="e-epTitle"/></div>
+<div class="af"><label>Mobile Number</label><input id="e-epNumber"/></div>
+<hr class="hr-div"/>
+<h4>JazzCash</h4>
+<div class="af"><label>Account Title</label><input id="e-jcTitle"/></div>
+<div class="af"><label>Mobile Number</label><input id="e-jcNumber"/></div>
+<div class="asr"><button class="save-btn" onclick="saveFields(['epTitle','epNumber','jcTitle','jcNumber'],this)">Save Mobile</button></div>
+</div>
+<div class="acard"><h4>International (SWIFT)</h4>
+<div class="af"><label>Bank Name</label><input id="e-intBank"/></div>
+<div class="af"><label>SWIFT / BIC</label><input id="e-intSwift"/></div>
+<div class="af"><label>IBAN</label><input id="e-intIBAN"/></div>
+<div class="asr"><button class="save-btn" onclick="saveFields(['intBank','intSwift','intIBAN'],this)">Save International</button></div>
+</div>
+<div class="acard"><h4>Security</h4>
+<p style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.9">Bank details are stored in <strong style="color:var(--gold-lt)">SQLite via IndexedDB</strong> and only shown inside the Donation modal popup. Visitors must click Donate Now to see them.<br><br>Always verify transfers via WhatsApp screenshot receipt.</p>
+</div>
+</div>
+</div>
+<div id="panel-submissions" class="admin-panel">
+<p class="ap-title">Membership Submissions</p>
+<p class="ap-sub">SQLite <code style="background:#0a1210;padding:2px 6px;border-radius:4px;font-size:11px">submissions</code> table.</p>
+<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+<input class="asearch" id="subSearch" placeholder="Search name, city, email…" oninput="renderSubs()" style="max-width:340px;margin:0"/>
+<button class="save-btn" onclick="exportCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export CSV</button>
+<button class="danger-btn" onclick="clearSubs()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Clear All</button>
+</div>
+<div id="subsList"></div>
+</div>
+<div id="panel-messages" class="admin-panel">
+<p class="ap-title">Contact Messages</p>
+<p class="ap-sub">Messages from the contact form stored in SQLite.</p>
+<div id="msgList"></div>
+</div>
+</main>
+</div>
+<script type="module">
+import { initDB, getAllSettings, setSettings, getPrograms, upsertProgram, deleteProgram, getLeaders, upsertLeader, deleteLeader, getEvents, upsertEvent, deleteEvent, getPages, upsertPage, getGallery, addGalleryItem, deleteGalleryItem, updateGalleryCaption, getSubmissions, updateSubmissionStatus, deleteSubmission, countSubmissions, countNew, getMessages, exportBlob, resetDB } from './js/db.js';
+let S = {};
+async function boot() {
+await initDB();
+S = getAllSettings();
+populateAll();
+renderProgramsEd();
+renderLeadersEd();
+renderEventsEd();
+renderPagesEd();
+renderGalleryAdmin();
+renderSubs();
+renderMsgs();
+renderDash();
+bindSidebar();
+}
+function bindSidebar() {
+document.querySelectorAll('.sidebar-link').forEach(l => {
+l.addEventListener('click', () => {
+document.querySelectorAll('.sidebar-link').forEach(x => x.classList.remove('active'));
+document.querySelectorAll('.admin-panel').forEach(x => x.classList.remove('active'));
+l.classList.add('active');
+document.getElementById('panel-' + l.dataset.panel)?.classList.add('active');
+});
+});
+}
+function populateAll() {
+Object.keys(S).forEach(k => {
+const el = document.getElementById('e-' + k);
+if (el) el.value = S[k] || '';
+const qel = document.getElementById('q-' + k);
+if (qel) qel.value = S[k] || '';
+});
+const dm = document.getElementById('ds-members'); if (dm) dm.textContent = S.statMembers || '—';
+const dp = document.getElementById('ds-progs'); if (dp) dp.textContent = getPrograms().length;
+const ds = document.getElementById('ds-subs'); if (ds) ds.textContent = countSubmissions();
+updateBadge();
+const lp = document.getElementById('logoPreview');
+if (lp && S.logoData) { lp.src = S.logoData; lp.classList.add('show'); }
+}
+function updateBadge() {
+const n = countNew();
+const b = document.getElementById('subBadge');
+if (b) { b.textContent = n; b.style.display = n > 0 ? 'inline' : 'none'; }
+}
+function showSaved() {
+const el = document.getElementById('saveStatus');
+el.classList.add('show');
+clearTimeout(window._st);
+window._st = setTimeout(() => el.classList.remove('show'), 2400);
+}
+function flashBtn(btn) {
+if (!btn || btn.tagName !== 'BUTTON') return;
+const orig = btn.innerHTML;
+btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Saved!';
+btn.classList.add('saved');
+setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('saved'); }, 2200);
+}
+function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+window.saveFields = async (keys, btn) => {
+const obj = {};
+keys.forEach(k => { const el = document.getElementById('e-' + k); if (el) { obj[k] = el.value; S[k] = el.value; } });
+await setSettings(obj);
+flashBtn(btn); showSaved();
+};
+window.quickSave = async () => {
+const keys = ['siteName', 'contactPhone', 'contactEmail'];
+const obj = {};
+keys.forEach(k => { const el = document.getElementById('q-' + k); if (!el) return; obj[k] = el.value; S[k] = el.value; const e2 = document.getElementById('e-' + k); if (e2) e2.value = el.value; });
+await setSettings(obj);
+flashBtn(document.getElementById('qSaveBtn')); showSaved();
+};
+window.handleLogoUpload = async (input) => {
+const file = input.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = async e => {
+const data = e.target.result;
+await setSettings({ logoData: data });
+S.logoData = data;
+const lp = document.getElementById('logoPreview');
+if (lp) { lp.src = data; lp.classList.add('show'); }
+showSaved();
+};
+reader.readAsDataURL(file);
+};
+window.clearLogo = async () => {
+await setSettings({ logoData: '' });
+S.logoData = '';
+const lp = document.getElementById('logoPreview');
+if (lp) { lp.src = ''; lp.classList.remove('show'); }
+showSaved();
+};
+function renderProgramsEd() {
+const el = document.getElementById('programsEditor'); if (!el) return;
+el.innerHTML = '';
+getPrograms().forEach(p => {
+const r = document.createElement('div'); r.className = 'row-ed';
+r.innerHTML = `<div class="re-top"><strong>${esc(p.title)}</strong><button class="rdel" onclick="delProg(${p.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Remove</button></div>
+<div class="ag" style="grid-template-columns:1fr 1fr;gap:10px">
+<div class="af"><label>Title</label><input value="${esc(p.title)}" onchange="upProg(${p.id},'title',this.value)"/></div>
+<div class="af"><label>Icon Name</label><input value="${esc(p.icon_name || 'handshake')}" onchange="upProg(${p.id},'icon_name',this.value)"/></div>
+<div class="af" style="grid-column:1/-1"><label>Description</label><textarea rows="2" onchange="upProg(${p.id},'desc',this.value)">${esc(p.desc || '')}</textarea></div>
+</div>
+<div class="af" style="margin-top:8px"><label>Card Color</label><input type="color" value="${p.color || '#1a6b4a'}" onchange="upProg(${p.id},'color',this.value)" style="height:36px;cursor:pointer;width:80px;background:none;border:1px solid #1d3828;border-radius:6px"/></div>`;
+el.appendChild(r);
+});
+}
+const _pc = {};
+window.upProg = (id, field, val) => { if (!_pc[id]) { const p = getPrograms().find(x => x.id === id); _pc[id] = p ? { ...p } : {}; } _pc[id][field] = val; clearTimeout(_pc[id]._t); _pc[id]._t = setTimeout(async () => { await upsertProgram(_pc[id]); showSaved(); }, 600); };
+window.delProg = async id => { if (!confirm('Remove?')) return; await deleteProgram(id); renderProgramsEd(); showSaved(); };
+window.addProgram = async () => { await upsertProgram({ icon_name: 'handshake', color: '#1a6b4a', title: 'New Program', desc: '', sort_order: getPrograms().length }); renderProgramsEd(); showSaved(); };
+function renderLeadersEd() {
+const el = document.getElementById('leadersEditor'); if (!el) return;
+el.innerHTML = '';
+getLeaders().forEach(l => {
+const r = document.createElement('div'); r.className = 'row-ed';
+const photoHTML = l.photo_data
+? '<img class="leader-photo-preview" src="' + esc(l.photo_data) + '" alt="photo"/>'
+: '<div class="leader-photo-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="28" height="28"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>';
+const removeBtn = l.photo_data
+? '<button class="leader-remove-photo" onclick="removeLeaderPhoto(' + l.id + ')">Remove Photo</button>'
+: '';
+r.innerHTML = '<div class="re-top"><strong>' + esc(l.initials) + ' - ' + esc(l.name) + '</strong><button class="rdel" onclick="delLead(' + l.id + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Remove</button></div>'
++ '<div class="leader-photo-row">'
++   '<div class="leader-photo-preview-wrap">' + photoHTML + '</div>'
++   '<div class="leader-photo-upload-col">'
++     '<label class="leader-upload-btn" for="photo-' + l.id + '">'
++       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'
++       ' Upload Photo'
++     '</label>'
++     '<input type="file" id="photo-' + l.id + '" accept="image/*" style="display:none" onchange="handleLeaderPhoto(' + l.id + ',this)"/>'
++     removeBtn
++     '<p style="font-size:11px;color:rgba(255,255,255,.35);margin-top:6px">Recommended: square photo, JPG/PNG under 1MB</p>'
++   '</div>'
++ '</div>'
++ '<div class="ag" style="grid-template-columns:70px 1fr 1fr;gap:10px;margin-top:12px">'
++   '<div class="af"><label>Initials</label><input maxlength="3" value="' + esc(l.initials) + '" onchange="upLead(' + l.id + ',\'initials\',this.value)"/></div>'
++   '<div class="af"><label>Full Name</label><input value="' + esc(l.name) + '" onchange="upLead(' + l.id + ',\'name\',this.value)"/></div>'
++   '<div class="af"><label>Role</label><input value="' + esc(l.role) + '" onchange="upLead(' + l.id + ',\'role\',this.value)"/></div>'
++ '</div>'
++ '<div class="ag" style="grid-template-columns:1fr auto;gap:10px;align-items:end;margin-top:4px">'
++   '<div class="af"><label>Email</label><input type="email" value="' + esc(l.email || '') + '" onchange="upLead(' + l.id + ',\'email\',this.value)"/></div>'
++   '<div class="af"><label>Featured?</label><select onchange="upLead(' + l.id + ',\'featured\',this.value===\'1\'?1:0)"><option value="0"' + (!l.featured ? ' selected' : '') + '>No</option><option value="1"' + (l.featured ? ' selected' : '') + '>Yes</option></select></div>'
++ '</div>';
+el.appendChild(r);
+});
+}
+const _lc = {};
+window.upLead = (id, f, v) => { if (!_lc[id]) { const l = getLeaders().find(x => x.id === id); _lc[id] = l ? { ...l } : {}; } _lc[id][f] = v; clearTimeout(_lc[id]._t); _lc[id]._t = setTimeout(async () => { await upsertLeader(_lc[id]); showSaved(); renderLeadersEd(); }, 700); };
+window.delLead = async id => { if (!confirm('Remove?')) return; await deleteLeader(id); renderLeadersEd(); showSaved(); };
+window.addLeader = async () => { await upsertLeader({ initials: 'NEW', name: 'New Member', role: 'Role', email: '', featured: 0, photo_data: '', sort_order: getLeaders().length }); renderLeadersEd(); showSaved(); };
+window.handleLeaderPhoto = async (id, input) => {
+const file = input.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = async ev => {
+const img = new Image();
+img.onload = async () => {
+const canvas = document.createElement('canvas');
+const max = 400;
+let w = img.width, h = img.height;
+const size = Math.min(w, h);
+const sx = (w - size) / 2, sy = (h - size) / 2;
+canvas.width = max; canvas.height = max;
+canvas.getContext('2d').drawImage(img, sx, sy, size, size, 0, 0, max, max);
+const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+if (!_lc[id]) { const l = getLeaders().find(x => x.id === id); _lc[id] = l ? {...l} : {}; }
+_lc[id].photo_data = dataUrl;
+await upsertLeader(_lc[id]);
+showSaved();
+renderLeadersEd();
+};
+img.src = ev.target.result;
+};
+reader.readAsDataURL(file);
+};
+window.removeLeaderPhoto = async (id) => {
+if (!confirm('Remove this photo?')) return;
+if (!_lc[id]) { const l = getLeaders().find(x => x.id === id); _lc[id] = l ? {...l} : {}; }
+_lc[id].photo_data = '';
+await upsertLeader(_lc[id]);
+showSaved();
+renderLeadersEd();
+};
+function renderEventsEd() {
+const el = document.getElementById('eventsEditor'); if (!el) return;
+el.innerHTML = '';
+getEvents().forEach(ev => {
+const r = document.createElement('div'); r.className = 'row-ed';
+r.innerHTML = `<div class="re-top"><strong>${esc(ev.day)} ${esc(ev.month)} — ${esc(ev.title)}</strong><button class="rdel" onclick="delEv(${ev.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Remove</button></div>
+<div class="ag" style="grid-template-columns:55px 70px 90px 1fr;gap:10px">
+<div class="af"><label>Day</label><input maxlength="2" value="${esc(ev.day)}" onchange="upEv(${ev.id},'day',this.value)"/></div>
+<div class="af"><label>Month</label><input maxlength="4" value="${esc(ev.month)}" onchange="upEv(${ev.id},'month',this.value)"/></div>
+<div class="af"><label>Tag</label><input value="${esc(ev.tag)}" onchange="upEv(${ev.id},'tag',this.value)"/></div>
+<div class="af"><label>Title</label><input value="${esc(ev.title)}" onchange="upEv(${ev.id},'title',this.value)"/></div>
+</div>
+<div class="ag" style="gap:10px;margin-top:6px">
+<div class="af"><label>Date &amp; Time</label><input value="${esc(ev.time_str || '')}" onchange="upEv(${ev.id},'time_str',this.value)"/></div>
+<div class="af"><label>Place</label><input value="${esc(ev.place || '')}" onchange="upEv(${ev.id},'place',this.value)"/></div>
+</div>`;
+el.appendChild(r);
+});
+}
+const _ec = {};
+window.upEv = (id, f, v) => { if (!_ec[id]) { const ev = getEvents().find(x => x.id === id); _ec[id] = ev ? { ...ev } : {}; } _ec[id][f] = v; clearTimeout(_ec[id]._t); _ec[id]._t = setTimeout(async () => { await upsertEvent(_ec[id]); showSaved(); }, 600); };
+window.delEv = async id => { if (!confirm('Remove?')) return; await deleteEvent(id); renderEventsEd(); showSaved(); };
+window.addEvent = async () => { await upsertEvent({ day: '01', month: 'Jan', tag: 'Event', title: 'New Event', time_str: '', place: '', sort_order: getEvents().length }); renderEventsEd(); showSaved(); };
+function renderPagesEd() {
+const el = document.getElementById('pagesEditor'); if (!el) return;
+el.innerHTML = '';
+getPages().forEach(pg => {
+const c = document.createElement('div'); c.className = 'acard'; c.style.marginBottom = '18px';
+c.innerHTML = `<h4>${esc(pg.label)} <span style="margin-left:auto;font-size:12px;color:${pg.published ? 'var(--green-lt)' : 'rgba(255,255,255,.3)'}">${pg.published ? '● Published' : '○ Hidden'}</span></h4>
+<div class="ag" style="gap:12px">
+<div class="af"><label>Footer Link Label</label><input value="${esc(pg.label)}" onchange="upPage(${pg.id},'label',this.value)"/></div>
+<div class="af"><label>Page Title</label><input value="${esc(pg.title || '')}" onchange="upPage(${pg.id},'title',this.value)"/></div>
+<div class="af" style="grid-column:1/-1"><label>Page Body Content</label><textarea rows="5" onchange="upPage(${pg.id},'body',this.value)">${esc(pg.body || '')}</textarea></div>
+</div>
+<div class="asr"><label style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" ${pg.published ? 'checked' : ''} onchange="upPage(${pg.id},'published',this.checked?1:0)" style="accent-color:var(--green)"/> Show in footer</label></div>`;
+el.appendChild(c);
+});
+}
+const _pgc = {};
+window.upPage = (id, f, v) => { if (!_pgc[id]) { const pg = getPages().find(x => x.id === id); _pgc[id] = pg ? { ...pg } : {}; } _pgc[id][f] = v; clearTimeout(_pgc[id]._t); _pgc[id]._t = setTimeout(async () => { await upsertPage(_pgc[id]); showSaved(); renderPagesEd(); }, 700); };
+async function renderGalleryAdmin() {
+const el = document.getElementById('galleryAdminGrid'); if (!el) return;
+const items = getGallery();
+el.innerHTML = items.map(item => `<div class="gallery-admin-item"><img src="${esc(item.data_url)}" alt="${esc(item.caption)}"/><button class="g-del" onclick="delGalleryItem(${item.id})" title="Delete">✕</button>${item.caption ? '<div class="g-cap">' + esc(item.caption) + '</div>' : ''}</div>`).join('') || '<p style="color:rgba(255,255,255,.4);font-size:13px">No photos uploaded yet.</p>';
+}
+window.delGalleryItem = async id => { if (!confirm('Delete this photo?')) return; await deleteGalleryItem(id); renderGalleryAdmin(); showSaved(); };
+window.handleGalleryUpload = async (input) => {
+const files = Array.from(input.files);
+const caption = document.getElementById('galleryCaption')?.value || '';
+for (const file of files) {
+await new Promise(resolve => {
+const reader = new FileReader();
+reader.onload = async e => {
+const img = new Image();
+img.onload = async () => {
+const canvas = document.createElement('canvas');
+const max = 800;
+let w = img.width, h = img.height;
+if (w > max) { h = Math.round(h * max / w); w = max; }
+canvas.width = w; canvas.height = h;
+canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+await addGalleryItem({ data_url: dataUrl, caption, sort_order: getGallery().length });
+resolve();
+};
+img.src = e.target.result;
+};
+reader.readAsDataURL(file);
+});
+}
+await renderGalleryAdmin();
+showSaved();
+input.value = '';
+};
+function renderDash() {
+const el = document.getElementById('dashSubs'); if (!el) return;
+const subs = getSubmissions('').slice(0, 5);
+if (!subs.length) { el.innerHTML = '<p style="color:rgba(255,255,255,.4)">No submissions yet.</p>'; return; }
+el.innerHTML = subs.map(s => `<div style="padding:9px 0;border-bottom:1px solid #1d3828"><strong style="color:#e0ede6">${esc(s.full_name || '—')}</strong> <span class="${s.status === 'new' ? 'badge-new' : 'badge-read'}">${s.status === 'new' ? 'NEW' : 'READ'}</span><br><span style="font-size:12px;color:rgba(255,255,255,.4)">${esc(s.member_type || '')} · ${esc(s.city || '')} · ${new Date(s.created_at || Date.now()).toLocaleDateString()}</span></div>`).join('');
+}
+window.renderSubs = () => {
+const el = document.getElementById('subsList'); if (!el) return;
+const q = document.getElementById('subSearch')?.value || '';
+const subs = getSubmissions(q);
+if (!subs.length) { el.innerHTML = '<p style="color:rgba(255,255,255,.4);font-size:14px;padding:18px 0">No submissions found.</p>'; return; }
+el.innerHTML = '';
+subs.forEach(s => {
+const d = new Date(s.created_at || Date.now()).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
+const r = document.createElement('div'); r.className = 'sub-row';
+r.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px"><div><div class="sr-name">${esc(s.full_name || '—')} <span class="${s.status === 'new' ? 'badge-new' : 'badge-read'}">${s.status === 'new' ? 'NEW' : 'READ'}</span></div><div style="font-size:13px;color:rgba(255,255,255,.5)">${esc(s.member_type || '—')} | ${esc(s.email || '—')} | ${esc(s.whatsapp || '—')}</div></div><div class="sub-acts"><button class="btn-view" onclick="viewSub(${s.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> View</button><button class="btn-read" onclick="markRead(${s.id})">Mark Read</button><button class="btn-del-s" onclick="delSub(${s.id})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></div></div><div class="sr-meta"><span>${esc(s.city || '')}, ${esc(s.country || '')}</span><span>${esc(s.education || '')}</span><span>${esc(s.work || '')}</span><span>${d}</span></div>${s.reason ? '<div style="margin-top:8px;font-size:13px;color:rgba(255,255,255,.4);font-style:italic">"' + esc(s.reason) + '"</div>' : ''}`;
+el.appendChild(r);
+});
+};
+window.viewSub = async id => {
+const s = getSubmissions('').find(x => x.id === id); if (!s) return;
+await updateSubmissionStatus(id, 'read'); updateBadge(); window.renderSubs();
+const info = Object.entries(s).filter(([k]) => !['id', 'created_at', 'status'].includes(k)).map(([k, v]) => `<tr><td style="color:#8fbd9f;font-size:12px;padding:6px 10px 6px 0;white-space:nowrap;vertical-align:top">${k.replace(/_/g, ' ')}</td><td style="color:#e0ede6;font-size:14px">${esc(v)}</td></tr>`).join('');
+const w = window.open('', '_blank', 'width=600,height=700');
+w.document.write('<!DOCTYPE html><html><head><title>Submission #' + id + '</title><style>body{font-family:sans-serif;padding:30px;background:#0f1a15;color:#e0ede6;line-height:1.7}h2{color:#c9a227;font-family:Georgia,serif}table{border-collapse:collapse;width:100%}td{border-bottom:1px solid #1d3828}</style></head><body><h2>Membership Application</h2><p style="color:rgba(255,255,255,.5);font-size:13px;margin-bottom:18px">Submission #' + id + ' — ' + new Date(s.created_at || Date.now()).toLocaleString() + '</p><table>' + info + '</table></body></html>');
+};
+window.markRead = async id => { await updateSubmissionStatus(id, 'read'); updateBadge(); window.renderSubs(); };
+window.delSub = async id => { if (!confirm('Delete?')) return; await deleteSubmission(id); window.renderSubs(); updateBadge(); document.getElementById('ds-subs').textContent = countSubmissions(); };
+window.clearSubs = async () => {
+if (!confirm('Delete ALL submissions?')) return;
+for (const s of getSubmissions('')) await deleteSubmission(s.id);
+window.renderSubs(); updateBadge(); document.getElementById('ds-subs').textContent = 0;
+};
+window.exportCSV = () => {
+const subs = getSubmissions(''); if (!subs.length) { alert('No submissions.'); return; }
+const cols = ['id', 'full_name', 'father_name', 'gender', 'member_type', 'cnic', 'dob', 'email', 'whatsapp', 'residential', 'affiliated', 'education', 'work', 'city', 'state', 'country', 'status', 'created_at'];
+const csv = [cols.join(','), ...subs.map(s => cols.map(c => '"' + (s[c] || '').toString().replace(/"/g, '""') + '"').join(','))].join('\n');
+const a = document.createElement('a');
+a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+a.download = 'awc_submissions_' + Date.now() + '.csv'; a.click();
+};
+function renderMsgs() {
+const el = document.getElementById('msgList'); if (!el) return;
+const msgs = getMessages();
+if (!msgs.length) { el.innerHTML = '<p style="color:rgba(255,255,255,.4);font-size:14px;padding:18px 0">No contact messages yet.</p>'; return; }
+el.innerHTML = '';
+msgs.forEach(m => {
+const r = document.createElement('div'); r.className = 'sub-row';
+r.innerHTML = `<div class="sr-name">${esc(m.name)} <span style="font-size:12px;font-weight:400;color:rgba(255,255,255,.45)">&lt;${esc(m.email)}&gt;</span></div><div style="font-size:14px;color:var(--gold-lt);margin:4px 0"><strong>${esc(m.subject)}</strong></div><div style="font-size:13px;color:rgba(255,255,255,.65);margin-top:5px">${esc(m.message)}</div><div class="sr-meta"><span>${new Date(m.created_at || Date.now()).toLocaleString()}</span></div>`;
+el.appendChild(r);
+});
+}
+window.doExport = () => { const b = exportBlob(); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'awc_db_' + Date.now() + '.sqlite'; a.click(); };
+window.doReset = async () => { if (!confirm('Reset ALL data to defaults? This cannot be undone.')) return; await resetDB(); S = getAllSettings(); populateAll(); renderProgramsEd(); renderLeadersEd(); renderEventsEd(); renderPagesEd(); renderGalleryAdmin(); window.renderSubs(); renderMsgs(); renderDash(); showSaved(); alert('Reset complete.'); };
+boot();
+const adminMenuBtn = document.getElementById('adminMenuBtn');
+const adminSidebar = document.querySelector('.admin-sidebar');
+const adminOverlay = document.getElementById('adminOverlay');
+function toggleSidebar(open) {
+const o = open !== undefined ? open : !adminSidebar.classList.contains('open');
+adminSidebar.classList.toggle('open', o);
+adminMenuBtn.classList.toggle('open', o);
+adminOverlay.classList.toggle('show', o);
+document.body.style.overflow = o ? 'hidden' : '';
+}
+adminMenuBtn.addEventListener('click', () => toggleSidebar());
+adminOverlay.addEventListener('click', () => toggleSidebar(false));
+document.querySelectorAll('.sidebar-link').forEach(l => {
+l.addEventListener('click', () => { if (window.innerWidth <= 768) toggleSidebar(false); });
+});
+window.addEventListener('resize', () => { if (window.innerWidth > 768) { toggleSidebar(false); document.body.style.overflow = ''; } });
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => {
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
+            }
+          });
+        });
+      });
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) { refreshing = true; window.location.reload(); }
+    });
+  });
+}
+</script>
+</body>
+</html>
