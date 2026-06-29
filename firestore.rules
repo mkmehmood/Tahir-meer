@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── siteConfig — all public content edited by admin ────────────
+    // Anyone worldwide can READ (index.html loads this on every visit)
+    // Only the admin UID can WRITE
+    match /siteConfig/{document} {
+      allow read:  if true;
+      allow write: if request.auth != null
+                   && request.auth.uid == "jYPaIx2KerQJPZNU3w19XxoQuYt1";
+    }
+
+    // ── registrations — membership form submissions ─────────────────
+    // Anyone can CREATE (public form, no login)
+    // Only admin can READ + update the status field
+    match /registrations/{document} {
+      allow create: if true;
+      allow read:   if request.auth != null
+                    && request.auth.uid == "jYPaIx2KerQJPZNU3w19XxoQuYt1";
+      allow update: if request.auth != null
+                    && request.auth.uid == "jYPaIx2KerQJPZNU3w19XxoQuYt1"
+                    && request.resource.data.diff(resource.data)
+                       .affectedKeys().hasOnly(['status']);
+      allow delete: if false;
+    }
+
+    // ── admins — session/login tracking doc ────────────────────────
+    match /admins/{uid} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == "jYPaIx2KerQJPZNU3w19XxoQuYt1"
+                         && request.auth.uid == uid;
+    }
+  }
+}

@@ -7,13 +7,13 @@
 <meta name="description" content="Arain World Council Bannu Regional Organisation — Unity, Empowerment, Development"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Noto+Nastaliq+Urdu:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=Cinzel:wght@600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="styles.css"/>
-<link rel="manifest" href="manifest.json"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles.css?v=1782732050"/>
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png"/>
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png"/>
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png"/>
-<meta name="theme-color" content="#1a6b4a"/>
+<meta name="theme-color" content="#6D28D9"/>
+<link rel="manifest" href="manifest.json"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="آرائیں بنوں"/>
@@ -206,7 +206,7 @@
 <div class="logo-icon sm">AWC</div>
 <div>
 <strong class="fancy" id="footerSiteName">Arain World Council</strong>
-<span id="footerSubName" style="display:block;font-size:11px;color:var(--gold-lt);letter-spacing:.5px"></span>
+<span id="footerSubName" style="display:block;font-size:11px;color:var(--purple-lt);letter-spacing:.5px"></span>
 </div>
 </div>
 <p id="footerDesc">AWC unites the global Arain community worldwide.</p>
@@ -217,15 +217,12 @@
 </div>
 <div class="footer-col">
 <h4 id="footerRecentNews">Recent News</h4>
-<div class="footer-news">
-<a href="#"><span>AWC Bannu Annual Gathering 2025</span><small>Apr 19, 2025</small></a>
-<a href="#"><span>Youth Leadership Summit Bannu 2025</span><small>Dec 10, 2025</small></a>
-</div>
+<div class="footer-news"></div>
 </div>
 <div class="footer-col">
 <h4 id="footerContactUs">Contact Us</h4>
 <p id="footerContactAddress" style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.9"></p>
-<p style="font-size:13px;margin-top:6px"><a id="footerContactPhone" href="#" style="color:var(--gold-lt)"></a></p>
+<p style="font-size:13px;margin-top:6px"><a id="footerContactPhone" href="#" style="color:var(--white)"></a></p>
 </div>
 </div>
 <div class="footer-bottom"><p id="footerCopy">© 2026 Arain World Council (AWC) — All Rights Reserved.</p></div>
@@ -386,30 +383,6 @@
 <img id="lightboxImg" src="" alt=""/>
 <p id="lightboxCaption"></p>
 </div>
-<script type="module" src="js/app.js"></script>
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => {
-        // When a new SW is waiting, reload to activate it automatically
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New version ready — tell it to skip waiting then reload
-              newWorker.postMessage({ type: 'SKIP_WAITING' });
-            }
-          });
-        });
-      });
-    // When SW has skipped waiting and activated, reload the page to use fresh cache
-    let refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!refreshing) { refreshing = true; window.location.reload(); }
-    });
-  });
-}
-</script>
+<script type="module" src="js/app.js?v=1782732050"></script>
 </body>
 </html>
