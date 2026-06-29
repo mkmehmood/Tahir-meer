@@ -45,7 +45,7 @@ value TEXT NOT NULL DEFAULT ''
 CREATE TABLE IF NOT EXISTS programs (
 id INTEGER PRIMARY KEY AUTOINCREMENT,
 icon_name TEXT NOT NULL DEFAULT 'handshake',
-color TEXT NOT NULL DEFAULT '#1a6b4a',
+color TEXT NOT NULL DEFAULT '#6D28D9',
 title TEXT NOT NULL DEFAULT '',
 desc TEXT NOT NULL DEFAULT '',
 sort_order INTEGER NOT NULL DEFAULT 0
@@ -172,14 +172,14 @@ s.free();
 function seedPrograms() {
 if (_db.exec('SELECT COUNT(*) FROM programs')[0].values[0][0] > 0) return;
 const p = [
-['handshake','#1a6b4a','Community Welfare','Supporting families across the community with essential welfare services.',0],
-['briefcase','#b5860d','Jobs & Career Support','Connecting qualified Arain youth with employment and professional growth opportunities.',1],
-['school','#2563a8','Arain Education Institutes','Establishing and supporting educational institutions for the Arain community.',2],
-['award','#7b2d8b','Arain Heroes Recognition','Celebrating outstanding Arain individuals who inspire the community.',3],
-['droplets','#c0392b','Flood Relief Activities','Providing immediate relief to flood-affected Arain families across Pakistan.',4],
-['ring','#e67e22','Arain Marriage Bureau','Facilitating matrimonial connections within the Arain community.',5],
-['building','#16a085','Arain Community Centers','Building dedicated community centers for cultural and educational activities.',6],
-['womanDesk','#8e44ad',"Women's Business Support",'Empowering Arain women entrepreneurs with resources and training.',7],
+['handshake','#6D28D9','Community Welfare','Supporting families across the community with essential welfare services.',0],
+['briefcase','#7C3AED','Jobs & Career Support','Connecting qualified Arain youth with employment and professional growth opportunities.',1],
+['school','#6D28D9','Arain Education Institutes','Establishing and supporting educational institutions for the Arain community.',2],
+['award','#9333EA','Arain Heroes Recognition','Celebrating outstanding Arain individuals who inspire the community.',3],
+['droplets','#A855F7','Flood Relief Activities','Providing immediate relief to flood-affected Arain families across Pakistan.',4],
+['ring','#8B5CF6','Arain Marriage Bureau','Facilitating matrimonial connections within the Arain community.',5],
+['building','#5B21B6','Arain Community Centers','Building dedicated community centers for cultural and educational activities.',6],
+['womanDesk','#7C3AED',"Women's Business Support",'Empowering Arain women entrepreneurs with resources and training.',7],
 ];
 const s = _db.prepare('INSERT INTO programs (icon_name,color,title,desc,sort_order) VALUES (?,?,?,?,?)');
 p.forEach(r => s.run(r));
@@ -262,7 +262,7 @@ export async function upsertProgram(p) {
 if (p.id) {
 _db.run('UPDATE programs SET icon_name=?,color=?,title=?,desc=?,sort_order=? WHERE id=?', [p.icon_name, p.color, p.title, p.desc, p.sort_order || 0, p.id]);
 } else {
-_db.run('INSERT INTO programs (icon_name,color,title,desc,sort_order) VALUES (?,?,?,?,?)', [p.icon_name || 'handshake', p.color || '#1a6b4a', p.title || '', p.desc || '', p.sort_order || 0]);
+_db.run('INSERT INTO programs (icon_name,color,title,desc,sort_order) VALUES (?,?,?,?,?)', [p.icon_name || 'handshake', p.color || '#6D28D9', p.title || '', p.desc || '', p.sort_order || 0]);
 }
 await persist();
 }
