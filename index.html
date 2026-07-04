@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="styles.css?v=1782732050"/>
+<link rel="stylesheet" href="styles.css?v=1783143407"/>
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png"/>
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png"/>
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png"/>
@@ -16,7 +16,7 @@
 <link rel="manifest" href="manifest.json"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="آرائیں بنوں"/>
+<meta name="apple-mobile-web-app-title" content="ارائیں بنوں"/>
 </head>
 <body>
 <div id="awc-loader">
@@ -369,6 +369,59 @@
 <button class="don-amt" id="donCustomLabel">Custom</button>
 </div>
 </div>
+
+<!-- ── Donation confirmation form ─────────────────────────────── -->
+<div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+  <h3 id="donFormTitle" style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px"></h3>
+  <p id="donFormSub" style="font-size:13px;color:var(--text-muted);margin-bottom:18px;line-height:1.6"></p>
+  <form id="donationForm" novalidate>
+    <div class="mem-grid">
+      <div class="form-group">
+        <label id="lDonorName" for="dfName"></label>
+        <input id="dfName" name="donorName" type="text" required/>
+      </div>
+      <div class="form-group">
+        <label id="lDonorPhone" for="dfPhone"></label>
+        <input id="dfPhone" name="phone" type="tel" required/>
+      </div>
+      <div class="form-group">
+        <label id="lDonorEmail" for="dfEmail"></label>
+        <input id="dfEmail" name="email" type="email"/>
+      </div>
+      <div class="form-group">
+        <label id="lDonAmount" for="dfAmount"></label>
+        <input id="dfAmount" name="amount" type="text" required/>
+      </div>
+      <div class="form-group">
+        <label id="lDonMethod" for="dfMethod"></label>
+        <select id="dfMethod" name="method" required>
+          <option value="">—</option>
+          <option value="bank">Bank Transfer</option>
+          <option value="easypaisa">Easypaisa</option>
+          <option value="jazzcash">JazzCash</option>
+          <option value="international">International</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label id="lDonTxID" for="dfTxId"></label>
+        <input id="dfTxId" name="txId" type="text" required/>
+      </div>
+      <div class="form-group form-full">
+        <label id="lDonNote" for="dfNote"></label>
+        <textarea id="dfNote" name="note" rows="2"></textarea>
+      </div>
+      <div class="form-group form-full">
+        <label id="lDonProof" for="dfProof"></label>
+        <input id="dfProof" name="proof" type="file" accept="image/*"
+          style="padding:8px 0;background:none;border:none"/>
+      </div>
+    </div>
+    <div style="margin-top:16px;display:flex;justify-content:flex-end;align-items:center;gap:12px;flex-wrap:wrap">
+      <div id="donFormSuccess" style="display:none;color:var(--purple);font-size:13px;font-weight:600;flex:1"></div>
+      <button type="submit" class="btn-primary" id="donSubmitBtn"></button>
+    </div>
+  </form>
+</div>
 </div>
 </div>
 <div class="modal-overlay" id="pageModal" role="dialog" aria-modal="true">
@@ -383,6 +436,6 @@
 <img id="lightboxImg" src="" alt=""/>
 <p id="lightboxCaption"></p>
 </div>
-<script type="module" src="js/app.js?v=1782732050"></script>
+<script type="module" src="js/app.js?v=1783143407"></script>
 </body>
 </html>

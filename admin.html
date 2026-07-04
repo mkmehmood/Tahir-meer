@@ -6,7 +6,7 @@
 <title>AWC Admin Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="styles.css?v=1782732050"/>
+<link rel="stylesheet" href="styles.css?v=1783143407"/>
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png"/>
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png"/>
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png"/>
@@ -14,6 +14,10 @@
 <link rel="manifest" href="manifest.json"/>
 </head>
 <body class="admin-body">
+
+<!-- ADMIN APP — entire admin UI, hidden until Firebase login succeeds -->
+<div id="admin-app" style="display:none">
+
 <div class="admin-topbar">
 <div style="display:flex;align-items:center;gap:10px">
 <button class="admin-menu-btn" id="adminMenuBtn" aria-label="Toggle sidebar"><span></span><span></span><span></span></button>
@@ -24,6 +28,7 @@
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
 Saved
 </div>
+<span id="topbarAdminEmail" style="font-size:12px;color:#475569;white-space:nowrap"></span>
 <a href="index.html" target="_blank">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
 View Site
@@ -35,6 +40,10 @@ Export DB
 <button class="ab-btn" onclick="doReset()" style="color:#e57373">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
 Reset
+</button>
+<button class="ab-btn" id="topbarLogoutBtn" onclick="fbLogout()" style="color:#dc2626;border-color:rgba(239,68,68,.25);background:rgba(239,68,68,.06)">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+<span>Sign Out</span>
 </button>
 </div>
 </div>
@@ -90,6 +99,9 @@ Reset
 </div>
 <div class="sidebar-link" data-panel="messages">
 <span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>Messages
+</div>
+<div class="sidebar-link" data-panel="donations">
+<span class="sl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg></span>Donations <span id="donBadge" style="background:linear-gradient(135deg,#6D28D9,#A855F7);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;margin-left:4px;display:none"></span>
 </div>
 </aside>
 <main class="admin-main">
@@ -285,46 +297,48 @@ Reset
 </div>
 </div>
 </div>
-<div id="panel-submissions" class="admin-panel">
-<p class="ap-title">Membership Submissions</p>
-<p class="ap-sub">Live data from Firestore — sign in once below to view, search, and export all registrations.</p>
-<div id="fb-auth-gate" style="
+<!-- ════════════════════════════════════════════════════════════
+     GLOBAL LOGIN SCREEN — shown until Firebase Auth succeeds.
+     The entire admin app (topbar + sidebar + every panel) is
+     hidden behind this until the correct admin account signs in.
+════════════════════════════════════════════════════════════ -->
+<div id="admin-login-screen" style="
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,#9CD5FF 0%,#B8E1FF 100%);
   display:flex;align-items:center;justify-content:center;
-  padding:40px 0;
-  font-family:'Inter',sans-serif;">
+  padding:24px;font-family:'Inter',sans-serif;">
 
-  <!-- Login card -->
   <div id="fb-login-card" style="
-    background:#FFFFFF;border:1px solid rgba(255,255,255,.08);border-radius:16px;
-    padding:40px 36px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.6);">
+    background:#FFFFFF;border:1px solid rgba(99,102,241,.15);border-radius:16px;
+    padding:40px 36px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(15,23,42,.18);">
 
     <div style="text-align:center;margin-bottom:28px">
       <div style="
         display:inline-flex;align-items:center;justify-content:center;
         width:56px;height:56px;background:linear-gradient(135deg,#6D28D9,#A855F7);
         border-radius:14px;margin-bottom:14px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#C4B5FD" stroke-width="2" stroke-linecap="round" width="26" height="26"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" width="26" height="26"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       </div>
       <h2 style="color:#0F172A;font-family:'Inter',sans-serif;font-weight:800;font-size:22px;margin:0 0 4px">Admin Login</h2>
       <p style="color:#475569;font-size:13px;margin:0">Arain World Council — Secure Dashboard</p>
     </div>
 
     <div style="margin-bottom:16px">
-      <label style="display:block;font-size:12px;color:#475569;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">Email Address</label>
-      <input id="fb-email" type="email" placeholder="admin@example.com"
-        style="width:100%;box-sizing:border-box;background:#9CD5FF;border:1.5px solid rgba(255,255,255,.08);
+      <label style="display:block;font-size:12px;color:#475569;margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase">Email Address</label>
+      <input id="fb-email" type="email" placeholder="admin@example.com" autocomplete="username"
+        style="width:100%;box-sizing:border-box;background:#9CD5FF;border:1.5px solid rgba(99,102,241,.2);
                border-radius:8px;padding:11px 14px;color:#0F172A;font-size:14px;outline:none;
                font-family:'Inter',sans-serif;transition:border-color .2s"
-        onfocus="this.style.borderColor='#6D28D9'" onblur="this.style.borderColor='rgba(255,255,255,.08)'"/>
+        onfocus="this.style.borderColor='#6D28D9'" onblur="this.style.borderColor='rgba(99,102,241,.2)'"/>
     </div>
 
     <div style="margin-bottom:22px">
-      <label style="display:block;font-size:12px;color:#475569;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">Password</label>
-      <input id="fb-password" type="password" placeholder="••••••••"
-        style="width:100%;box-sizing:border-box;background:#9CD5FF;border:1.5px solid rgba(255,255,255,.08);
+      <label style="display:block;font-size:12px;color:#475569;margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase">Password</label>
+      <input id="fb-password" type="password" placeholder="••••••••" autocomplete="current-password"
+        style="width:100%;box-sizing:border-box;background:#9CD5FF;border:1.5px solid rgba(99,102,241,.2);
                border-radius:8px;padding:11px 14px;color:#0F172A;font-size:14px;outline:none;
                font-family:'Inter',sans-serif;transition:border-color .2s"
-        onfocus="this.style.borderColor='#6D28D9'" onblur="this.style.borderColor='rgba(255,255,255,.08)'"
+        onfocus="this.style.borderColor='#6D28D9'" onblur="this.style.borderColor='rgba(99,102,241,.2)'"
         onkeydown="if(event.key==='Enter') fbLogin()"/>
     </div>
 
@@ -340,12 +354,26 @@ Reset
       display:none;margin-top:14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.25);
       border-radius:8px;padding:10px 14px;color:#dc2626;font-size:13px;text-align:center">
     </div>
+
+    <div id="fb-login-checking" style="
+      margin-top:14px;text-align:center;color:#475569;font-size:13px;display:flex;
+      align-items:center;justify-content:center;gap:8px">
+      <span style="width:14px;height:14px;border:2px solid rgba(109,40,217,.25);
+        border-top-color:#6D28D9;border-radius:50%;display:inline-block;
+        animation:adminSpin .7s linear infinite"></span>
+      Checking session…
+    </div>
   </div>
 </div>
+<style>@keyframes adminSpin{to{transform:rotate(360deg)}}</style>
 
-<!-- ── Floating Firebase Registrations panel (shown after login) ── -->
+<div id="panel-submissions" class="admin-panel">
+<p class="ap-title">Membership Submissions</p>
+<p class="ap-sub">Live data from Firestore — registrations submitted on the public site.</p>
+
+<!-- Firebase Registrations panel — visible once globally logged in -->
 <div id="fb-dashboard" style="
-  display:none;
+  display:block;
   font-family:'Inter',sans-serif;">
 
   <!-- Topbar -->
@@ -373,11 +401,6 @@ Reset
         background:rgba(109,40,217,.15);border:1px solid rgba(109,40,217,.45);border-radius:7px;
         padding:8px 14px;color:#6D28D9;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif">
         ⬇ Export CSV
-      </button>
-      <button onclick="fbLogout()" style="
-        background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.25);border-radius:7px;
-        padding:8px 14px;color:#dc2626;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif">
-        Sign Out
       </button>
     </div>
   </div>
@@ -411,6 +434,7 @@ Reset
         <tr style="background:#B8E1FF;color:#475569;text-align:left;
                    font-size:11px;letter-spacing:.6px;text-transform:uppercase">
           <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">#</th>
+          <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Photo</th>
           <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Full Name</th>
           <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Father Name</th>
           <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Gender</th>
@@ -431,7 +455,7 @@ Reset
         </tr>
       </thead>
       <tbody id="fb-tbody">
-        <tr><td colspan="18" style="padding:40px;text-align:center;color:#94A3B8">Loading…</td></tr>
+        <tr><td colspan="19" style="padding:40px;text-align:center;color:#94A3B8">Loading…</td></tr>
       </tbody>
     </table>
   </div>
@@ -441,16 +465,74 @@ Reset
   </div>
 </div>
 </div>
+<!-- /panel-submissions -->
 <div id="panel-messages" class="admin-panel">
 <p class="ap-title">Contact Messages</p>
 <p class="ap-sub">Messages from the contact form stored in SQLite.</p>
 <div id="msgList"></div>
 </div>
+
+<div id="panel-donations" class="admin-panel">
+<p class="ap-title">Donations</p>
+<p class="ap-sub">Live donor records from Firestore — submitted via the public donation form after bank transfer.</p>
+
+<!-- Stats bar -->
+<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px">
+  <div class="astat" style="flex:1;min-width:140px">
+    <div class="as-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="32" height="32"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+    <div><div class="as-num" id="don-total">—</div><div class="as-lbl">Total Records</div></div>
+  </div>
+  <div class="astat" style="flex:1;min-width:140px">
+    <div class="as-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="32" height="32"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg></div>
+    <div><div class="as-num" id="don-unverified">—</div><div class="as-lbl">Unverified</div></div>
+  </div>
+</div>
+
+<!-- Search + Export -->
+<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+  <input class="asearch" id="donSearch" placeholder="🔍 Search donor name, phone, method, tx ID…"
+    oninput="renderDonTable()" style="flex:1;min-width:200px;margin:0"/>
+  <button class="save-btn" onclick="exportDonCSV()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Export CSV
+  </button>
+</div>
+
+<!-- Table -->
+<div style="overflow-x:auto">
+<table id="don-table" style="width:100%;border-collapse:collapse;min-width:900px;font-size:13px">
+  <thead>
+    <tr style="background:#B8E1FF;color:#475569;text-align:left;font-size:11px;letter-spacing:.6px;text-transform:uppercase">
+      <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">#</th>
+      <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Screenshot</th>
+      <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Donor Name</th>
+      <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Phone</th>
+      <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Email</th>
+      <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Amount</th>
+      <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Method</th>
+      <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Tx ID</th>
+      <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Note</th>
+      <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Status</th>
+      <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Submitted</th>
+      <th style="padding:10px 12px;border-bottom:1px solid rgba(99,102,241,.15)">Actions</th>
+    </tr>
+  </thead>
+  <tbody id="don-tbody">
+    <tr><td colspan="12" style="padding:40px;text-align:center;color:#94A3B8">Loading…</td></tr>
+  </tbody>
+</table>
+</div>
+<div id="don-empty" style="display:none;padding:48px;text-align:center;color:#94A3B8;font-size:15px">
+  No donation records found.
+</div>
+</div>
 </main>
 </div>
+<!-- /admin-app -->
+</div>
 <script type="module">
-import { initDB, getAllSettings, setSettings, getPrograms, upsertProgram, deleteProgram, getLeaders, upsertLeader, deleteLeader, getEvents, upsertEvent, deleteEvent, getPages, upsertPage, getGallery, addGalleryItem, deleteGalleryItem, updateGalleryCaption, getSubmissions, updateSubmissionStatus, deleteSubmission, countSubmissions, countNew, getMessages, exportBlob, resetDB } from './js/db.js?v=1782732050';
-import { pushSettings, pushPrograms, pushLeaders, pushEvents, pushPages, pushGallery, fetchAllSiteContent } from './js/cloud.js?v=1782732050';
+import { initDB, getAllSettings, setSettings, getPrograms, upsertProgram, deleteProgram, getLeaders, upsertLeader, deleteLeader, getEvents, upsertEvent, deleteEvent, getPages, upsertPage, getGallery, addGalleryItem, deleteGalleryItem, updateGalleryCaption, getSubmissions, updateSubmissionStatus, deleteSubmission, countSubmissions, countNew, getMessages, addDonation, getDonations, updateDonationStatus, deleteDonation, countDonations, countUnverified, exportBlob, resetDB } from './js/db.js?v=1783143407';
+import { pushSettings, pushPrograms, pushLeaders, pushEvents, pushPages, pushGallery, fetchAllSiteContent } from './js/cloud.js?v=1783143407';
 
 // ── Cloud sync helper: push a collection array after every local write ────────
 async function syncToCloud() {
@@ -901,10 +983,11 @@ window.addEventListener('resize', () => {
   if (window.innerWidth > 768) { toggleSidebar(false); document.body.style.overflow = ''; }
 });
 
-// ── Boot the admin app ────────────────────────────────────────────────────────
-boot();
+// boot() is NOT called here automatically — it only runs after the
+// Firebase auth script (below) confirms the admin is logged in.
+// Exposed globally so that script can invoke it.
+window.__bootAdminApp = boot;
 </script>
-</body>
 </html>
 
 <!-- ═══════════════════════════════════════════════════════════════
@@ -1007,15 +1090,49 @@ window.fbViewDoc = function(idx) {
     `<tr><td style="color:#475569;font-size:12px;padding:7px 14px 7px 0;white-space:nowrap;vertical-align:top">${k}</td>
          <td style="color:#0F172A;font-size:14px;padding:7px 0">${esc(v) || '<span style="color:#94A3B8">—</span>'}</td></tr>`
   ).join('');
-  const w = window.open('', '_blank', 'width=620,height=750');
+
+  // Photo section — large avatar if submitted, initials placeholder if not
+  const photoSection = d.photoData
+    ? `<div style="text-align:center;margin-bottom:24px">
+         <img src="${d.photoData}" alt="Photo"
+           style="width:120px;height:120px;border-radius:50%;object-fit:cover;
+                  border:4px solid rgba(109,40,217,.3);display:inline-block;
+                  box-shadow:0 4px 20px rgba(109,40,217,.2)"/>
+         <p style="margin:8px 0 0;color:#6D28D9;font-size:12px;font-weight:600">Applicant Photo</p>
+       </div>`
+    : `<div style="text-align:center;margin-bottom:24px">
+         <div style="width:120px;height:120px;border-radius:50%;
+                     background:rgba(109,40,217,.12);border:4px solid rgba(109,40,217,.2);
+                     display:inline-flex;align-items:center;justify-content:center;
+                     font-size:42px;font-weight:800;color:#6D28D9">
+           ${(d.fullName || '?').charAt(0).toUpperCase()}
+         </div>
+         <p style="margin:8px 0 0;color:#94A3B8;font-size:12px">No photo provided</p>
+       </div>`;
+
+  const w = window.open('', '_blank', 'width=620,height=820');
   w.document.write(`<!DOCTYPE html><html><head><title>AWC — ${esc(d.fullName)}</title>
-    <style>body{font-family:'Inter',sans-serif;padding:32px;background:#9CD5FF;color:#0F172A;line-height:1.7}
-    h2{color:#6D28D9;font-family:'Inter',sans-serif;font-weight:800;margin-bottom:4px}
-    p{color:#475569;font-size:13px;margin:0 0 22px}
-    table{border-collapse:collapse;width:100%}td{border-bottom:1px solid rgba(99,102,241,.15)}</style></head>
-    <body><h2>Membership Application</h2>
-    <p>Document ID: ${esc(d._id)} &nbsp;·&nbsp; ${formatDate(d.submittedAt)}</p>
-    <table>${rows}</table></body></html>`);
+    <style>
+      body{font-family:'Inter',sans-serif;padding:32px;background:#9CD5FF;color:#0F172A;line-height:1.7;margin:0}
+      h2{color:#6D28D9;font-weight:800;margin-bottom:2px;font-size:22px}
+      .meta{color:#475569;font-size:13px;margin:0 0 20px}
+      table{border-collapse:collapse;width:100%}
+      td{border-bottom:1px solid rgba(99,102,241,.15);padding:8px 0}
+      td:first-child{color:#475569;font-size:12px;padding-right:16px;white-space:nowrap;vertical-align:top;padding-top:10px}
+      td:last-child{color:#0F172A;font-size:14px}
+    </style></head>
+    <body>
+    ${photoSection}
+    <h2>${esc(d.fullName) || '—'}</h2>
+    <p class="meta">
+      <span style="background:rgba(109,40,217,.12);border:1px solid rgba(109,40,217,.3);
+        border-radius:20px;padding:2px 10px;font-size:11px;color:#6D28D9;font-weight:700;margin-right:8px">
+        ${esc(d.membershipType) || '—'}
+      </span>
+      Doc ID: ${esc(d._id)} &nbsp;·&nbsp; ${formatDate(d.submittedAt)}
+    </p>
+    <table>${rows}</table>
+    </body></html>`);
 };
 
 // ── Mark read / unread in Firestore ──────────────────────────────────────────
@@ -1062,11 +1179,25 @@ window.fbRenderTable = function() {
   const td = (val, extra='') =>
     `<td style="padding:10px 12px;color:#475569;white-space:nowrap${extra}">${esc(val) || '—'}</td>`;
 
+  // Photo cell — thumbnail if photo exists, placeholder avatar if not
+  const photoCell = (d) => d.photoData
+    ? `<td style="padding:8px 12px"><img src="${d.photoData}" alt="photo"
+         style="width:40px;height:40px;border-radius:50%;object-fit:cover;
+                border:2px solid rgba(109,40,217,.3);display:block"/></td>`
+    : `<td style="padding:8px 12px">
+         <div style="width:40px;height:40px;border-radius:50%;
+                     background:rgba(109,40,217,.12);border:2px solid rgba(109,40,217,.2);
+                     display:flex;align-items:center;justify-content:center;
+                     font-size:14px;color:#6D28D9;font-weight:700">
+           ${(d.fullName || '?').charAt(0).toUpperCase()}
+         </div></td>`;
+
   tbody.innerHTML = filtered.map((d, i) => `
-    <tr style="border-bottom:1px solid #0f2218;transition:background .15s"
+    <tr style="border-bottom:1px solid rgba(99,102,241,.12);transition:background .15s"
         onmouseover="this.style.background='rgba(109,40,217,.06)'"
         onmouseout="this.style.background='#FFFFFF'">
       <td style="padding:10px 12px;color:#94A3B8;font-size:12px">${i + 1}</td>
+      ${photoCell(d)}
       <td style="padding:10px 12px;color:#0F172A;font-weight:600;white-space:nowrap">${esc(d.fullName) || '—'}</td>
       ${td(d.fatherName)}
       ${td(d.gender)}
@@ -1077,7 +1208,7 @@ window.fbRenderTable = function() {
       ${td(d.cnic, ';font-size:12px;font-family:monospace')}
       ${td(d.dob, ';font-size:12px')}
       <td style="padding:10px 12px;white-space:nowrap">
-        <a href="mailto:${esc(d.email)}" style="color:#60a5fa;text-decoration:none">${esc(d.email) || '—'}</a>
+        <a href="mailto:${esc(d.email)}" style="color:#6D28D9;text-decoration:none">${esc(d.email) || '—'}</a>
       </td>
       ${td(d.whatsapp)}
       ${td(d.residentialStatus)}
@@ -1095,8 +1226,8 @@ window.fbRenderTable = function() {
           View
         </button>
         ${d.status === 'new' ? `<button onclick="fbMarkRead('${d._id}')"
-          style="background:rgba(109,40,217,.1);border:1px solid #6366f1;border-radius:6px;
-                 padding:4px 10px;color:#a5b4fc;font-size:12px;cursor:pointer">
+          style="background:rgba(109,40,217,.1);border:1px solid rgba(109,40,217,.3);border-radius:6px;
+                 padding:4px 10px;color:#7C3AED;font-size:12px;cursor:pointer">
           Mark Read
         </button>` : ''}
       </td>
@@ -1142,24 +1273,45 @@ async function initAdminDoc(user) {
   }
 }
 
-// ── Show / hide panels ────────────────────────────────────────────────────────
+// ── Show / hide the ENTIRE admin app (not just the registrations table) ──────
 async function showDashboard(user) {
-  document.getElementById('fb-auth-gate').style.display  = 'none';
-  document.getElementById('fb-dashboard').style.display  = 'block';
-  document.getElementById('fb-admin-email').textContent  = user.email;
-  await initAdminDoc(user);   // ← create/update /admins/{uid} doc in Firestore
+  // Reveal the whole admin app — sidebar, topbar, all 15 panels
+  document.getElementById('admin-login-screen').style.display = 'none';
+  document.getElementById('admin-app').style.display = 'block';
+  document.getElementById('fb-admin-email').textContent = user.email;
+  const topbarEmail = document.getElementById('topbarAdminEmail');
+  if (topbarEmail) topbarEmail.textContent = user.email;
+
+  // Boot the admin panel content NOW — this was previously called
+  // unconditionally with no login check at all. It only runs once.
+  if (!window.__adminBooted && typeof window.__bootAdminApp === 'function') {
+    window.__adminBooted = true;
+    await window.__bootAdminApp();
+  }
+
+  await initAdminDoc(user);   // create/update /admins/{uid} doc in Firestore
   startRealtimeListener();
+  startDonListener();
 }
 
 function showLogin() {
-  document.getElementById('fb-auth-gate').style.display  = 'flex';
-  document.getElementById('fb-dashboard').style.display  = 'none';
+  // Hide the whole admin app, show only the login screen
+  document.getElementById('admin-app').style.display = 'none';
+  document.getElementById('admin-login-screen').style.display = 'flex';
+  const checking = document.getElementById('fb-login-checking');
+  if (checking) checking.style.display = 'none';
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  if (typeof donUnsub === 'function') { donUnsub(); donUnsub = null; }
   allDocs = [];
+  donDocs = [];
 }
 
 // ── Auth state observer (handles page refresh / existing session) ──────────
 onAuthStateChanged(auth, user => {
+  // First resolution (whether logged in or not) — stop showing "Checking session…"
+  const checking = document.getElementById('fb-login-checking');
+  if (checking) checking.style.display = 'none';
+
   if (user && user.uid === ADMIN_UID) {
     showDashboard(user);
   } else {
@@ -1210,7 +1362,7 @@ window.fbLogin = async function() {
 // ── Logout ────────────────────────────────────────────────────────────────────
 window.fbLogout = async function() {
   await signOut(auth);
-  // onAuthStateChanged fires → showLogin() is called automatically
+  window.__adminBooted = false;
 };
 
 // ── CSV Export (all fields) ───────────────────────────────────────────────────
@@ -1237,11 +1389,15 @@ window.fbExportCSV = function() {
     { key: 'status',            label: 'Status'             },
     { key: 'submittedAt',       label: 'Submitted At'       },
     { key: '_id',               label: 'Document ID'        },
+    { key: 'hasPhoto',          label: 'Has Photo'          },
   ];
   const header = cols.map(c => '"' + c.label + '"').join(',');
   const rows = allDocs.map(d =>
     cols.map(({ key }) => {
-      let v = key === 'submittedAt' ? formatDate(d[key]) : (d[key] || '');
+      let v;
+      if (key === 'submittedAt') v = formatDate(d[key]);
+      else if (key === 'hasPhoto') v = d.photoData ? 'Yes' : 'No';
+      else v = d[key] || '';
       return '"' + String(v).replace(/"/g, '""') + '"';
     }).join(',')
   );
@@ -1252,4 +1408,159 @@ window.fbExportCSV = function() {
   a.download = 'awc_registrations_' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
 };
+
+// ══════════════════════════════════════════════════════════════════
+//  DONATIONS — Firestore live listener + admin table
+// ══════════════════════════════════════════════════════════════════
+let donDocs  = [];
+let donUnsub = null;
+
+function startDonListener() {
+  if (donUnsub) donUnsub();
+  const q = query(collection(db, 'donations'), orderBy('submittedAt', 'desc'));
+  donUnsub = onSnapshot(q,
+    snap => {
+      donDocs = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+      renderDonTable();
+    },
+    err => console.warn('[AWC] donations onSnapshot:', err.message)
+  );
+}
+
+function donStatusBadge(s) {
+  const ok = s === 'verified';
+  return `<span style="background:${ok?'rgba(34,197,94,.15)':'rgba(245,158,11,.12)'};
+    border:1px solid ${ok?'rgba(34,197,94,.4)':'rgba(245,158,11,.4)'};
+    border-radius:20px;padding:2px 9px;font-size:11px;font-weight:700;
+    color:${ok?'#16a34a':'#b45309'}">${ok?'VERIFIED':'UNVERIFIED'}</span>`;
+}
+
+window.donViewDoc = function(idx) {
+  const d = donDocs[idx]; if (!d) return;
+  const photo = d.photoData
+    ? `<div style="text-align:center;margin-bottom:20px">
+        <img src="${d.photoData}" style="max-width:320px;width:100%;border-radius:12px;
+          border:2px solid rgba(109,40,217,.3);box-shadow:0 4px 20px rgba(109,40,217,.15)"/>
+        <p style="color:#6D28D9;font-size:12px;font-weight:600;margin-top:8px">Payment Screenshot</p></div>`
+    : '<p style="color:#94A3B8;font-size:13px;margin-bottom:16px">No screenshot provided</p>';
+  const rows = [
+    ['Donor Name',d.donorName],['Phone',d.phone],['Email',d.email],
+    ['Amount',d.amount],['Method',d.method],['Transaction ID',d.txId],
+    ['Note',d.note],['Status',d.status||'unverified'],['Submitted',formatDate(d.submittedAt)],
+  ].map(([k,v])=>`<tr>
+    <td style="color:#475569;font-size:12px;padding:7px 16px 7px 0;white-space:nowrap;vertical-align:top">${k}</td>
+    <td style="color:#0F172A;font-size:14px;padding:7px 0">${v||'<span style="color:#94A3B8">—</span>'}</td></tr>`
+  ).join('');
+  const w = window.open('','_blank','width=560,height=820');
+  w.document.write(`<!DOCTYPE html><html><head><title>Donation — ${esc(d.donorName||'')}</title>
+    <style>body{font-family:'Inter',sans-serif;padding:28px;background:#9CD5FF;color:#0F172A;margin:0;line-height:1.7}
+    h2{color:#6D28D9;font-weight:800;font-size:20px;margin-bottom:4px}
+    .meta{color:#475569;font-size:13px;margin:0 0 20px}
+    table{border-collapse:collapse;width:100%}td{border-bottom:1px solid rgba(99,102,241,.15)}</style></head>
+    <body><h2>${esc(d.donorName||'—')}</h2>
+    <p class="meta">Doc: ${esc(d._id)} · ${formatDate(d.submittedAt)}</p>
+    ${photo}<table>${rows}</table></body></html>`);
+};
+
+window.donMarkVerified = async function(docId) {
+  const { doc: fd, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+  await updateDoc(fd(db,'donations',docId),{status:'verified'});
+};
+window.donMarkUnverified = async function(docId) {
+  const { doc: fd, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+  await updateDoc(fd(db,'donations',docId),{status:'unverified'});
+};
+
+window.renderDonTable = function() {
+  const q     = (document.getElementById('donSearch')?.value||'').toLowerCase();
+  const tbody = document.getElementById('don-tbody');
+  const empty = document.getElementById('don-empty');
+  const totEl = document.getElementById('don-total');
+  const unvEl = document.getElementById('don-unverified');
+  const badge = document.getElementById('donBadge');
+
+  const unv = donDocs.filter(d=>d.status!=='verified').length;
+  if(totEl) totEl.textContent = donDocs.length;
+  if(unvEl) unvEl.textContent = unv;
+  if(badge){ badge.textContent=unv; badge.style.display=unv>0?'inline-block':'none'; }
+
+  const filtered = q ? donDocs.filter(d=>
+    (d.donorName||'').toLowerCase().includes(q)||
+    (d.phone||'').toLowerCase().includes(q)||
+    (d.email||'').toLowerCase().includes(q)||
+    (d.method||'').toLowerCase().includes(q)||
+    (d.txId||'').toLowerCase().includes(q)||
+    (d.amount||'').toLowerCase().includes(q)
+  ) : donDocs;
+
+  if(!filtered.length){ if(tbody)tbody.innerHTML=''; if(empty)empty.style.display='block'; return; }
+  if(empty) empty.style.display='none';
+
+  const e2 = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const td2 = v => `<td style="padding:10px 12px;color:#475569;white-space:nowrap">${e2(v)||'—'}</td>`;
+
+  const photoCell = (d,i) => d.photoData
+    ? `<td style="padding:8px 12px"><img src="${d.photoData}" onclick="donViewDoc(${i})"
+         style="width:44px;height:44px;border-radius:8px;object-fit:cover;cursor:pointer;
+                border:2px solid rgba(109,40,217,.3)"/></td>`
+    : `<td style="padding:8px 12px"><div style="width:44px;height:44px;border-radius:8px;
+         background:rgba(109,40,217,.1);border:2px solid rgba(109,40,217,.15);
+         display:flex;align-items:center;justify-content:center;font-size:18px">💳</div></td>`;
+
+  tbody.innerHTML = filtered.map((d,i) => {
+    const gi = donDocs.indexOf(d);
+    return `<tr style="border-bottom:1px solid rgba(99,102,241,.12);background:#FFFFFF"
+        onmouseover="this.style.background='rgba(109,40,217,.06)'"
+        onmouseout="this.style.background='#FFFFFF'">
+      <td style="padding:10px 12px;color:#94A3B8;font-size:12px">${i+1}</td>
+      ${photoCell(d,gi)}
+      <td style="padding:10px 12px;color:#0F172A;font-weight:600;white-space:nowrap">${e2(d.donorName)||'—'}</td>
+      ${td2(d.phone)}
+      <td style="padding:10px 12px;white-space:nowrap">${d.email?`<a href="mailto:${e2(d.email)}" style="color:#6D28D9;text-decoration:none">${e2(d.email)}</a>`:'—'}</td>
+      <td style="padding:10px 12px;font-weight:700;color:#0F172A;white-space:nowrap">${e2(d.amount)||'—'}</td>
+      <td style="padding:10px 12px"><span style="background:rgba(109,40,217,.12);border:1px solid rgba(109,40,217,.3);
+        border-radius:20px;padding:2px 9px;font-size:11px;color:#6D28D9">${e2(d.method)||'—'}</span></td>
+      <td style="padding:10px 12px;font-size:12px;font-family:monospace;white-space:nowrap">${e2(d.txId)||'—'}</td>
+      ${td2(d.note)}
+      <td style="padding:10px 12px">${donStatusBadge(d.status)}</td>
+      <td style="padding:10px 12px;color:#475569;font-size:12px;white-space:nowrap">${formatDate(d.submittedAt)}</td>
+      <td style="padding:10px 12px;white-space:nowrap">
+        <button onclick="donViewDoc(${gi})" style="background:rgba(109,40,217,.15);border:1px solid rgba(109,40,217,.4);
+          border-radius:6px;padding:4px 9px;color:#6D28D9;font-size:12px;cursor:pointer;margin-right:4px">View</button>
+        ${d.status!=='verified'
+          ? `<button onclick="donMarkVerified('${d._id}')" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.35);
+              border-radius:6px;padding:4px 9px;color:#16a34a;font-size:12px;cursor:pointer">✓ Verify</button>`
+          : `<button onclick="donMarkUnverified('${d._id}')" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);
+              border-radius:6px;padding:4px 9px;color:#b45309;font-size:12px;cursor:pointer">Unverify</button>`}
+      </td></tr>`;
+  }).join('');
+};
+
+window.exportDonCSV = function() {
+  if(!donDocs.length){ alert('No donation records to export.'); return; }
+  const cols = [
+    {key:'donorName',label:'Donor Name'},{key:'phone',label:'Phone'},
+    {key:'email',label:'Email'},{key:'amount',label:'Amount'},
+    {key:'method',label:'Method'},{key:'txId',label:'Tx ID'},
+    {key:'note',label:'Note'},{key:'status',label:'Status'},
+    {key:'submittedAt',label:'Submitted'},{key:'_id',label:'Doc ID'},
+    {key:'hasScreenshot',label:'Has Screenshot'},
+  ];
+  const header = cols.map(c=>'"'+c.label+'"').join(',');
+  const rows = donDocs.map(d=>cols.map(({key})=>{
+    let v;
+    if(key==='submittedAt') v=formatDate(d[key]);
+    else if(key==='hasScreenshot') v=d.photoData?'Yes':'No';
+    else v=d[key]||'';
+    return '"'+String(v).replace(/"/g,'""')+'"';
+  }).join(','));
+  const csv  = [header,...rows].join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = 'awc_donations_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+};
 </script>
+</body>
+</html>
