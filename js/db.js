@@ -103,6 +103,7 @@ street TEXT NOT NULL DEFAULT '',
 city TEXT NOT NULL DEFAULT '',
 state TEXT NOT NULL DEFAULT '',
 country TEXT NOT NULL DEFAULT '',
+photo_data TEXT NOT NULL DEFAULT '',
 status TEXT NOT NULL DEFAULT 'new',
 created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -113,6 +114,19 @@ email TEXT NOT NULL DEFAULT '',
 subject TEXT NOT NULL DEFAULT '',
 message TEXT NOT NULL DEFAULT '',
 status TEXT NOT NULL DEFAULT 'unread',
+created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS donations (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+donor_name TEXT NOT NULL DEFAULT '',
+phone TEXT NOT NULL DEFAULT '',
+email TEXT NOT NULL DEFAULT '',
+amount TEXT NOT NULL DEFAULT '',
+method TEXT NOT NULL DEFAULT '',
+tx_id TEXT NOT NULL DEFAULT '',
+note TEXT NOT NULL DEFAULT '',
+photo_data TEXT NOT NULL DEFAULT '',
+status TEXT NOT NULL DEFAULT 'unverified',
 created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 `);
@@ -226,7 +240,26 @@ if (_db) return _db;
 _SQL = await new Promise((res, rej) => {
 const sc = document.createElement('script');
 sc.src = 'js/sql-wasm.js';
-sc.onload = () => initSqlJs({ locateFile: () => 'js/sql-wasm.wasm' }).then(res).catch(rej);
+sc.onload = () => initSqlJs({
+  locateFile: () => 'js/sql-wasm.wasm',
+  // Compile the WASM module directly from an ArrayBuffer instead of
+  // relying on WebAssembly.instantiateStreaming(), which requires the
+  // server to send "Content-Type: application/wasm" exactly. Some static
+  // hosts (file://, misconfigured CDNs, GitHub Pages, etc.) don't send
+  // that header, which makes streaming compilation fail — sql.js then
+  // falls back to this same ArrayBuffer method anyway, just with an
+  // extra failed network attempt and a console warning first. Doing it
+  // this way from the start skips the failed attempt and the warning,
+  // with no real performance cost for a WASM module this size.
+  instantiateWasm: (imports, successCallback) => {
+    fetch('js/sql-wasm.wasm', { credentials: 'same-origin' })
+      .then(response => response.arrayBuffer())
+      .then(bytes => WebAssembly.instantiate(bytes, imports))
+      .then(result => successCallback(result.instance, result.module))
+      .catch(rej);
+    return {}; // tells Emscripten async instantiation is in progress
+  },
+}).then(res).catch(rej);
 sc.onerror = rej;
 document.head.appendChild(sc);
 });
@@ -308,8 +341,8 @@ await persist();
 export async function deleteGalleryItem(id) { _db.run('DELETE FROM gallery WHERE id=?', [id]); await persist(); }
 export async function updateGalleryCaption(id, caption) { _db.run('UPDATE gallery SET caption=? WHERE id=?', [caption, id]); await persist(); }
 export async function addSubmission(d) {
-_db.run('INSERT INTO submissions (full_name,father_name,gender,member_type,cnic,dob,email,whatsapp,residential,affiliated,education,work,reason,street,city,state,country) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-[d.fullName || '', d.fatherName || '', d.gender || '', d.membershipType || '', d.cnic || '', d.dob || '', d.email || '', d.whatsapp || '', d.residentialStatus || '', d.affiliated || '', d.education || '', d.work || '', d.reason || '', d.street || '', d.city || '', d.state || '', d.country || '']);
+_db.run('INSERT INTO submissions (full_name,father_name,gender,member_type,cnic,dob,email,whatsapp,residential,affiliated,education,work,reason,street,city,state,country,photo_data) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+[d.fullName || '', d.fatherName || '', d.gender || '', d.membershipType || '', d.cnic || '', d.dob || '', d.email || '', d.whatsapp || '', d.residentialStatus || '', d.affiliated || '', d.education || '', d.work || '', d.reason || '', d.street || '', d.city || '', d.state || '', d.country || '', d.photoData || '']);
 await persist();
 }
 export function getSubmissions(filter) {
@@ -331,6 +364,23 @@ _db.run('INSERT INTO messages (name,email,subject,message) VALUES (?,?,?,?)', [d
 await persist();
 }
 export function getMessages() { return rows(_db.exec('SELECT * FROM messages ORDER BY id DESC')); }
+
+export async function addDonation(d) {
+_db.run('INSERT INTO donations (donor_name,phone,email,amount,method,tx_id,note,photo_data) VALUES (?,?,?,?,?,?,?,?)',
+[d.donorName || '', d.phone || '', d.email || '', d.amount || '', d.method || '', d.txId || '', d.note || '', d.photoData || '']);
+await persist();
+}
+export function getDonations() { return rows(_db.exec('SELECT * FROM donations ORDER BY id DESC')); }
+export async function updateDonationStatus(id, status) {
+_db.run('UPDATE donations SET status=? WHERE id=?', [status, id]);
+await persist();
+}
+export async function deleteDonation(id) {
+_db.run('DELETE FROM donations WHERE id=?', [id]);
+await persist();
+}
+export function countDonations() { return _db.exec('SELECT COUNT(*) FROM donations')[0]?.values[0][0] || 0; }
+export function countUnverified() { return _db.exec("SELECT COUNT(*) FROM donations WHERE status='unverified'")[0]?.values[0][0] || 0; }
 export function exportBlob() { return new Blob([_db.export()], { type: 'application/octet-stream' }); }
 export async function resetDB() {
 ['programs','leaders','events','pages','gallery','submissions','messages','settings'].forEach(t => _db.run('DROP TABLE IF EXISTS ' + t));

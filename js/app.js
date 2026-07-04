@@ -5,12 +5,12 @@
 //  Live onSnapshot keeps index.html updated without refresh.
 // ================================================================
 import { initDB, getAllSettings, getPrograms, getLeaders, getEvents,
-         getPages, getPage, getGallery, addSubmission, addMessage }
-  from './db.js?v=1782732050';
-import { saveRegistrationToCloud } from './firebase.js?v=1782732050';
-import { fetchAllSiteContent, subscribeToSiteContent } from './cloud.js?v=1782732050';
-import { t, EN, UR } from './lang.js?v=1782732050';
-import { iconHTML } from './icons.js?v=1782732050';
+         getPages, getPage, getGallery, addSubmission, addMessage, addDonation }
+  from './db.js?v=1783143407';
+import { saveRegistrationToCloud, saveDonationToCloud } from './firebase.js?v=1783143407';
+import { fetchAllSiteContent, subscribeToSiteContent } from './cloud.js?v=1783143407';
+import { t, EN, UR } from './lang.js?v=1783143407';
+import { iconHTML } from './icons.js?v=1783143407';
 
 // ── State ─────────────────────────────────────────────────────
 let S    = {};   // flat settings object
@@ -43,9 +43,18 @@ const esc = s   => String(s||'')
 const set = (id, text) => { const el = g(id); if (el) el.textContent = text; };
 const setHTML = (id, html) => { const el = g(id); if (el) el.innerHTML = html; };
 
-// Translatable value: Urdu override → cloud setting → English default
+// Translatable value: returns content ONLY in the currently selected
+// language — never mixes English and Urdu on the same page.
+//
+// Priority for Urdu:   UR[key]  →  EN[key]  (last resort, clearly labelled to admin)
+// Priority for English: S[key] (cloud/admin override) → EN[key]
+//
+// Cloud-saved admin overrides (S[key]) are English-only content by
+// design (the admin panel has no language toggle), so they are only
+// ever applied when the page itself is in English. This is what
+// previously caused English cloud text to leak into Urdu pages.
 const tv = key => {
-  if (lang === 'ur') { const v = UR[key]; if (v) return v; }
+  if (lang === 'ur') return UR[key] || EN[key] || '';
   return S[key] || EN[key] || '';
 };
 
@@ -482,6 +491,23 @@ function renderDonationModal() {
       if (icon) tab.insertBefore(icon, tab.firstChild);
     }
   });
+
+  // Donation confirmation form labels
+  set('donFormTitle',  t('donFormTitle', lang));
+  set('donFormSub',    t('donFormSub',   lang));
+  set('lDonorName',    t('donorName',    lang));
+  set('lDonorPhone',   t('donorPhone',   lang));
+  set('lDonorEmail',   t('donorEmail',   lang));
+  set('lDonAmount',    t('donAmount',    lang));
+  set('lDonMethod',    t('donMethod',    lang));
+  set('lDonTxID',      t('donTxID',      lang));
+  set('lDonNote',      t('donNote',      lang));
+  set('lDonProof',     t('donProof',     lang));
+  set('donSubmitBtn',  t('donSubmitBtn', lang));
+  const dfTxId = g('dfTxId');
+  if (dfTxId) dfTxId.placeholder = t('donTxIDPh', lang);
+  const dfNote = g('dfNote');
+  if (dfNote) dfNote.placeholder = t('donNotePh', lang);
 }
 
 // ── Membership form ───────────────────────────────────────────
@@ -759,6 +785,39 @@ function bindCopyBtns() {
   });
 }
 
+// ── Image compression helper ──────────────────────────────────
+// Resizes + re-encodes an uploaded photo as JPEG so it stays well
+// under Firestore's 1MB-per-document limit, regardless of how large
+// the original phone/camera photo was.
+function compressImageToDataURL(file, maxDim = 480, quality = 0.72) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type?.startsWith('image/')) { resolve(''); return; }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read image file'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Could not decode image file'));
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > maxDim) {
+          height = Math.round(height * (maxDim / width));
+          width  = maxDim;
+        } else if (height > maxDim) {
+          width  = Math.round(width * (maxDim / height));
+          height = maxDim;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width  = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 // ── Forms ─────────────────────────────────────────────────────
 function bindForms() {
   // Membership
@@ -788,6 +847,20 @@ function bindForms() {
       const data = {};
       for (const [k, v] of fd.entries()) if (k !== 'photo' && k !== 'consent') data[k] = v;
 
+      // Compress the uploaded photo (if any) into a small base64 JPEG
+      // so it can be stored directly inside the Firestore document.
+      const photoFile = fd.get('photo');
+      if (photoFile && photoFile.size > 0) {
+        try {
+          data.photoData = await compressImageToDataURL(photoFile);
+        } catch (err) {
+          console.warn('[AWC] Photo compression failed, submitting without photo:', err);
+          data.photoData = '';
+        }
+      } else {
+        data.photoData = '';
+      }
+
       const btn = g('memSubmitBtn');
       btn.disabled    = true;
       btn.textContent = t('submitting', lang);
@@ -805,6 +878,60 @@ function bindForms() {
             + `<span>${t('appSuccess', lang)}</span>`;
           ms.classList.add('show');
           setTimeout(() => ms.classList.remove('show'), 6000);
+        }
+      }, 900);
+    });
+  }
+
+  // Donation confirmation form
+  const df = g('donationForm');
+  const ds = g('donFormSuccess');
+  if (df) {
+    df.addEventListener('submit', async ev => {
+      ev.preventDefault();
+      let ok = true;
+      ['dfName','dfPhone','dfAmount','dfMethod','dfTxId'].forEach(id => {
+        const el = g(id);
+        el?.classList.remove('error');
+        if (!el?.value.trim()) { el?.classList.add('error'); ok = false; }
+      });
+      if (!ok) { g('dfName')?.scrollIntoView({ behavior:'smooth', block:'center' }); return; }
+
+      const btn = g('donSubmitBtn');
+      btn.disabled    = true;
+      btn.textContent = t('donSubmitting', lang);
+
+      // Compress the payment screenshot if provided
+      const proofFile = df.querySelector('[name=proof]')?.files?.[0];
+      let photoData = '';
+      if (proofFile && proofFile.size > 0) {
+        try { photoData = await compressImageToDataURL(proofFile, 800, 0.75); }
+        catch (e) { console.warn('[AWC] Screenshot compress failed:', e); }
+      }
+
+      const data = {
+        donorName: g('dfName').value.trim(),
+        phone:     g('dfPhone').value.trim(),
+        email:     g('dfEmail').value.trim(),
+        amount:    g('dfAmount').value.trim(),
+        method:    g('dfMethod').value,
+        txId:      g('dfTxId').value.trim(),
+        note:      g('dfNote').value.trim(),
+        photoData,
+      };
+
+      await addDonation(data).catch(console.error);
+      await saveDonationToCloud(data).catch(err =>
+        console.warn('[AWC] Donation cloud save failed:', err));
+
+      setTimeout(() => {
+        btn.disabled    = false;
+        btn.textContent = t('donSubmitBtn', lang);
+        df.reset();
+        if (ds) {
+          ds.textContent = t('donSuccess', lang);
+          ds.style.display = 'block';
+          setTimeout(() => { ds.style.display = 'none'; }, 8000);
         }
       }, 900);
     });
