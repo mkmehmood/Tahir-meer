@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>AWC Admin Panel</title>
+<title>ARAAIN BANNU Admin Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="styles.css?v=1783143407"/>
+<link rel="stylesheet" href="styles.css?v=1783561847"/>
+<link rel="icon" href="icons/favicon.ico" sizes="any"/>
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png"/>
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png"/>
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png"/>
@@ -21,7 +22,7 @@
 <div class="admin-topbar">
 <div style="display:flex;align-items:center;gap:10px">
 <button class="admin-menu-btn" id="adminMenuBtn" aria-label="Toggle sidebar"><span></span><span></span><span></span></button>
-<div class="ab-logo"><span>AWC</span> Admin Panel</div>
+<div class="ab-logo"><span>ARAAIN BANNU</span> Admin Panel</div>
 </div>
 <div class="ab-actions">
 <div class="ab-save-status" id="saveStatus">
@@ -134,7 +135,7 @@ Reset
 <div class="acard"><h4>Logo Upload</h4>
 <div class="af"><label>Upload Logo Image</label><input type="file" id="logoFile" accept="image/*" onchange="handleLogoUpload(this)"/></div>
 <img id="logoPreview" class="logo-preview" src="" alt="Logo Preview"/>
-<p style="font-size:12px;color:#475569;margin-top:10px">Logo is stored as base64 in SQLite and displayed in the header instead of the AWC text icon.</p>
+<p style="font-size:12px;color:#475569;margin-top:10px">Logo is stored as base64 in SQLite and displayed in the header instead of the ARAAIN BANNU text icon.</p>
 <div class="asr"><button class="save-btn" onclick="clearLogo()">Remove Logo</button></div>
 </div>
 <div class="acard"><h4>Site Names</h4>
@@ -217,7 +218,7 @@ Reset
 </div>
 <div class="acard" style="margin-bottom:18px"><h4>Upload Photos</h4>
 <div class="af"><label>Select Images (multiple)</label><input type="file" id="galleryUpload" accept="image/*" multiple onchange="handleGalleryUpload(this)"/></div>
-<div class="af"><label>Caption for uploaded images (optional)</label><input id="galleryCaption" placeholder="e.g. AWC Bannu Annual Gathering 2025"/></div>
+<div class="af"><label>Caption for uploaded images (optional)</label><input id="galleryCaption" placeholder="e.g. ARAAIN BANNU Annual Gathering 2025"/></div>
 <p style="font-size:12px;color:#475569;margin-top:8px">Images are resized to max 800px and stored in SQLite. Recommended: JPG/PNG under 2MB each.</p>
 </div>
 <div id="galleryAdminGrid" class="gallery-admin-grid"></div>
@@ -320,7 +321,7 @@ Reset
         <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" width="26" height="26"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       </div>
       <h2 style="color:#0F172A;font-family:'Inter',sans-serif;font-weight:800;font-size:22px;margin:0 0 4px">Admin Login</h2>
-      <p style="color:#475569;font-size:13px;margin:0">Arain World Council — Secure Dashboard</p>
+      <p style="color:#475569;font-size:13px;margin:0">ARAAIN BANNU — Secure Dashboard</p>
     </div>
 
     <div style="margin-bottom:16px">
@@ -385,7 +386,7 @@ Reset
       <div style="
         background:linear-gradient(135deg,#6D28D9,#A855F7);
         border-radius:10px;padding:7px 12px;
-        color:#6D28D9;font-weight:700;font-size:15px;letter-spacing:.5px">AWC</div>
+        color:#6D28D9;font-weight:700;font-size:15px;letter-spacing:.5px">ARAAIN BANNU</div>
       <div>
         <div style="color:#0F172A;font-weight:600;font-size:15px">Cloud Registrations</div>
         <div id="fb-realtime-badge" style="
@@ -531,8 +532,8 @@ Reset
 <!-- /admin-app -->
 </div>
 <script type="module">
-import { initDB, getAllSettings, setSettings, getPrograms, upsertProgram, deleteProgram, getLeaders, upsertLeader, deleteLeader, getEvents, upsertEvent, deleteEvent, getPages, upsertPage, getGallery, addGalleryItem, deleteGalleryItem, updateGalleryCaption, getSubmissions, updateSubmissionStatus, deleteSubmission, countSubmissions, countNew, getMessages, addDonation, getDonations, updateDonationStatus, deleteDonation, countDonations, countUnverified, exportBlob, resetDB } from './js/db.js?v=1783143407';
-import { pushSettings, pushPrograms, pushLeaders, pushEvents, pushPages, pushGallery, fetchAllSiteContent } from './js/cloud.js?v=1783143407';
+import { initDB, getAllSettings, setSettings, getPrograms, upsertProgram, deleteProgram, getLeaders, upsertLeader, deleteLeader, getEvents, upsertEvent, deleteEvent, getPages, upsertPage, getGallery, addGalleryItem, deleteGalleryItem, updateGalleryCaption, getSubmissions, updateSubmissionStatus, deleteSubmission, countSubmissions, countNew, getMessages, addDonation, getDonations, updateDonationStatus, deleteDonation, countDonations, countUnverified, exportBlob, resetDB } from './js/db.js?v=1783561847';
+import { pushSettings, pushPrograms, pushLeaders, pushEvents, pushPages, pushGallery, fetchAllSiteContent } from './js/cloud.js?v=1783561847';
 
 // ── Cloud sync helper: push a collection array after every local write ────────
 async function syncToCloud() {
@@ -545,9 +546,9 @@ async function syncToCloud() {
       pushPages(getPages()),
       pushGallery(getGallery().map(g => ({ ...g, data_url: g.data_url || '' }))),
     ]);
-    console.log('[AWC Cloud] Synced to Firestore ✓');
+    console.log('[ARAAIN BANNU Cloud] Synced to Firestore ✓');
   } catch (err) {
-    console.warn('[AWC Cloud] Sync failed:', err.message);
+    console.warn('[ARAAIN BANNU Cloud] Sync failed:', err.message);
   }
 }
 let S = {};
@@ -936,7 +937,7 @@ const cols = ['id', 'full_name', 'father_name', 'gender', 'member_type', 'cnic',
 const csv = [cols.join(','), ...subs.map(s => cols.map(c => '"' + (s[c] || '').toString().replace(/"/g, '""') + '"').join(','))].join('\n');
 const a = document.createElement('a');
 a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-a.download = 'awc_submissions_' + Date.now() + '.csv'; a.click();
+a.download = 'araain_bannu_submissions_' + Date.now() + '.csv'; a.click();
 };
 function renderMsgs() {
 const el = document.getElementById('msgList'); if (!el) return;
@@ -949,7 +950,7 @@ r.innerHTML = `<div class="sr-name">${esc(m.name)} <span style="font-size:12px;f
 el.appendChild(r);
 });
 }
-window.doExport = () => { const b = exportBlob(); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'awc_db_' + Date.now() + '.sqlite'; a.click(); };
+window.doExport = () => { const b = exportBlob(); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'araain_bannu_db_' + Date.now() + '.sqlite'; a.click(); };
 window.doReset = async () => { if (!confirm('Reset ALL data to defaults? This cannot be undone.')) return; await resetDB(); S = getAllSettings(); populateAll(); renderProgramsEd(); renderLeadersEd(); renderEventsEd(); renderPagesEd(); renderGalleryAdmin(); window.renderSubs(); renderMsgs(); renderDash(); await syncToCloud().catch(e => console.warn('[Cloud] reset sync:', e.message)); showSaved(); alert('Reset complete. Firestore updated.'); };
 
 // ── Mobile sidebar drawer — declared BEFORE boot() so bindSidebar()
@@ -1111,7 +1112,7 @@ window.fbViewDoc = function(idx) {
        </div>`;
 
   const w = window.open('', '_blank', 'width=620,height=820');
-  w.document.write(`<!DOCTYPE html><html><head><title>AWC — ${esc(d.fullName)}</title>
+  w.document.write(`<!DOCTYPE html><html><head><title>ARAAIN BANNU — ${esc(d.fullName)}</title>
     <style>
       body{font-family:'Inter',sans-serif;padding:32px;background:#9CD5FF;color:#0F172A;line-height:1.7;margin:0}
       h2{color:#6D28D9;font-weight:800;margin-bottom:2px;font-size:22px}
@@ -1250,7 +1251,7 @@ function startRealtimeListener() {
       fbRenderTable();
     },
     err => {
-      console.error('[AWC] Firestore onSnapshot error:', err);
+      console.error('[ARAAIN BANNU] Firestore onSnapshot error:', err);
       document.getElementById('fb-realtime-badge').textContent = '⚠ Error';
       document.getElementById('fb-realtime-badge').style.color = '#f87171';
     }
@@ -1266,10 +1267,10 @@ async function initAdminDoc(user) {
       lastLoginAt:   serverTimestamp(),   // updates on every login
       initializedAt: serverTimestamp()    // setDoc+merge keeps original value after first write
     }, { merge: true });
-    console.log('[AWC] Firestore admin doc initialized ✓');
+    console.log('[ARAAIN BANNU] Firestore admin doc initialized ✓');
   } catch (err) {
     // Most likely cause: "admins" collection not yet in rules — add allow below if needed
-    console.warn('[AWC] Could not write admin doc (check Firestore rules for /admins):', err);
+    console.warn('[ARAAIN BANNU] Could not write admin doc (check Firestore rules for /admins):', err);
   }
 }
 
@@ -1282,9 +1283,14 @@ async function showDashboard(user) {
   const topbarEmail = document.getElementById('topbarAdminEmail');
   if (topbarEmail) topbarEmail.textContent = user.email;
 
-  // Boot the admin panel content NOW — this was previously called
-  // unconditionally with no login check at all. It only runs once.
+  // Boot the admin panel on first login.
+  // On re-login after logout, just re-render the dashboard panel
+  // (SQLite is already loaded; we only need fresh Firestore listeners).
   if (!window.__adminBooted && typeof window.__bootAdminApp === 'function') {
+    window.__adminBooted = true;
+    await window.__bootAdminApp();
+  } else if (window.__adminBooted === false && window.__bootAdminApp) {
+    // Re-login after logout: re-run boot() to resync cloud data
     window.__adminBooted = true;
     await window.__bootAdminApp();
   }
@@ -1300,10 +1306,24 @@ function showLogin() {
   document.getElementById('admin-login-screen').style.display = 'flex';
   const checking = document.getElementById('fb-login-checking');
   if (checking) checking.style.display = 'none';
+
+  // Tear down Firestore listeners if still running
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
   if (typeof donUnsub === 'function') { donUnsub(); donUnsub = null; }
   allDocs = [];
   donDocs = [];
+
+  // Reset sidebar to dashboard panel so next login starts fresh
+  document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  const dashPanel = document.getElementById('panel-dashboard');
+  const dashLink  = document.querySelector('.sidebar-link[data-panel="dashboard"]');
+  if (dashPanel) dashPanel.classList.add('active');
+  if (dashLink)  dashLink.classList.add('active');
+
+  // Clear the admin email from topbar
+  const topbarEmail = document.getElementById('topbarAdminEmail');
+  if (topbarEmail) topbarEmail.textContent = '';
 }
 
 // ── Auth state observer (handles page refresh / existing session) ──────────
@@ -1361,8 +1381,29 @@ window.fbLogin = async function() {
 
 // ── Logout ────────────────────────────────────────────────────────────────────
 window.fbLogout = async function() {
+  // Stop all Firestore listeners before signing out
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  if (typeof donUnsub === 'function') { donUnsub(); donUnsub = null; }
+  allDocs = [];
+  donDocs = [];
+
   await signOut(auth);
+
+  // Manually call showLogin() — onAuthStateChanged sometimes
+  // fires too late on mobile after signOut(), causing a blank screen
   window.__adminBooted = false;
+  showLogin();
+
+  // Reset login form to clean state for re-login
+  const emailEl = document.getElementById('fb-email');
+  const passEl  = document.getElementById('fb-password');
+  const btnEl   = document.getElementById('fb-login-btn');
+  const errEl   = document.getElementById('fb-login-error');
+  if (emailEl) emailEl.value = '';
+  if (passEl)  passEl.value  = '';
+  if (btnEl)   btnEl.textContent = 'Sign In';
+  if (btnEl)   btnEl.disabled    = false;
+  if (errEl)   errEl.style.display = 'none';
 };
 
 // ── CSV Export (all fields) ───────────────────────────────────────────────────
@@ -1405,7 +1446,7 @@ window.fbExportCSV = function() {
   const blob = new Blob([csv], { type: 'text/csv' });
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
-  a.download = 'awc_registrations_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.download = 'araain_bannu_registrations_' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
 };
 
@@ -1423,7 +1464,7 @@ function startDonListener() {
       donDocs = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
       renderDonTable();
     },
-    err => console.warn('[AWC] donations onSnapshot:', err.message)
+    err => console.warn('[ARAAIN BANNU] donations onSnapshot:', err.message)
   );
 }
 
@@ -1558,7 +1599,7 @@ window.exportDonCSV = function() {
   const blob = new Blob([csv],{type:'text/csv'});
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
-  a.download = 'awc_donations_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.download = 'araain_bannu_donations_'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
 };
 </script>
