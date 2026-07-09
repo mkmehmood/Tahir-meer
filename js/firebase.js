@@ -1,6 +1,6 @@
 // =========================================================
 //  js/firebase.js  —  Firebase v10 Modular SDK
-//  AWC | Arain World Council — tahir-meer project
+//  ARAAIN BANNU | ARAAIN BANNU — tahir-meer project
 //
 //  Firestore document structure mirrors the exact fields
 //  from index.html membershipForm + db.js submissions table.

@@ -1,5 +1,5 @@
-const DB_NAME = 'awc_sqlite_v4';
-const IDB_STORE = 'awc_db';
+const DB_NAME = 'araain_bannu_sqlite_v4';
+const IDB_STORE = 'araain_bannu_db';
 const IDB_KEY = 'main';
 let _db = null;
 let _SQL = null;
@@ -133,18 +133,18 @@ created_at TEXT NOT NULL DEFAULT (datetime('now'))
 }
 function seedSettings() {
 const d = {
-siteName: 'Arain World Council',
+siteName: 'ARAAIN BANNU',
 siteTagline: 'Unity | Empowerment | Development',
 siteSubName: 'Bannu Regional Organisation',
 siteSubTagline: 'Bannu | KPK | Pakistan',
 logoData: '',
-heroBadge: 'Welcome to AWC',
-heroTitle: 'Arain World Council',
+heroBadge: 'Welcome to ARAAIN BANNU',
+heroTitle: 'ARAAIN BANNU',
 heroSub: 'Empowering Our Next Generation, Proud Of Our Heritage',
 heroTagline: 'Uniting the Arain Community Worldwide — Strength, Unity, Progress',
-aboutP1: 'Arain World Council - AWC is a non-political, welfare-oriented platform established to unite the global Arain community under one vision of progress, unity, and empowerment.',
+aboutP1: 'ARAAIN BANNU is a non-political, welfare-oriented platform established to unite the global Arain community under one vision of progress, unity, and empowerment.',
 aboutP2: 'The Council actively works in education, employment, youth development, and social welfare, guiding the younger generation and providing professional growth opportunities.',
-aboutP3: 'All members contribute voluntarily with dedication. AWC believes in transparency, unity, and service to humanity without any discrimination.',
+aboutP3: 'All members contribute voluntarily with dedication. ARAAIN BANNU believes in transparency, unity, and service to humanity without any discrimination.',
 statMembers: '500+',
 statPrograms: '8',
 statCities: '30+',
@@ -159,21 +159,21 @@ donateTitle: 'Give Donation',
 donateDesc: 'Do you want to support the Arain Family and make a meaningful difference?',
 eventsTitle: 'Events & Programs',
 galleryTitle: 'Photo Gallery',
-galleryDesc: 'Memories from AWC events, gatherings, and milestones.',
-contactAddress: '11 Grand Central East 16th floor, New York, NY 10017, United States',
+galleryDesc: 'Memories from ARAAIN BANNU events, gatherings, and milestones.',
+contactAddress: 'Bannu, Khyber Pakhtunkhwa, Pakistan',
 contactHours: 'Mon – Fri: 8:00 am – 6:00 pm',
 contactPhone: '+92-33-9192-9922',
-contactEmail: 'admin@arainworldcouncil.org',
-footerDesc: 'Arain World Council unites the global Arain community, empowering youth, promoting education, supporting welfare, and building strong networks for progress worldwide.',
-footerCopy: '© 2026 Arain World Council (AWC) — All Rights Reserved.',
+contactEmail: 'admin@arainbannu.org',
+footerDesc: 'ARAAIN BANNU unites the global Arain community, empowering youth, promoting education, supporting welfare, and building strong networks for progress worldwide.',
+footerCopy: '© 2026 ARAAIN BANNU — All Rights Reserved.',
 bankName: 'Meezan Bank Ltd.',
-bankTitle: 'Arain World Council',
+bankTitle: 'ARAAIN BANNU',
 bankAccount: '0226-0106765474',
 bankIBAN: 'PK52MEZN0002260106765474',
 bankBranch: '0226',
 epTitle: 'Dr. Aitzaz Chaudhary Arain',
 epNumber: '0339-1929922',
-jcTitle: 'AWC Council Fund',
+jcTitle: 'ARAAIN BANNU Fund',
 jcNumber: '0339-1929922',
 intBank: 'Meezan Bank Ltd.',
 intSwift: 'MEZNPKKA',
@@ -214,7 +214,7 @@ function seedEvents() {
 if (_db.exec('SELECT COUNT(*) FROM events')[0].values[0][0] > 0) return;
 const e = [
 ['02','Jan','Business','Strategically Build Your Business','Jan 2, 2025 @ 15:00 – 19:00','Bannu, KPK, Pakistan',0],
-['19','Apr','Community','AWC Bannu Annual Gathering 2025','Apr 19, 2025 @ 09:30 – 13:00','Bannu Sports Complex',1],
+['19','Apr','Community','ARAAIN BANNU Annual Gathering 2025','Apr 19, 2025 @ 09:30 – 13:00','Bannu Sports Complex',1],
 ['10','Dec','Youth','Youth Leadership Summit 2025','Dec 10, 2025 @ 10:00 – 16:00','Bannu Press Club',2],
 ];
 const s = _db.prepare('INSERT INTO events (day,month,tag,title,time_str,place,sort_order) VALUES (?,?,?,?,?,?,?)');
@@ -224,12 +224,12 @@ s.free();
 function seedPages() {
 if (_db.exec('SELECT COUNT(*) FROM pages')[0].values[0][0] > 0) return;
 const p = [
-['blog','Our Blog','AWC Blog','Welcome to the AWC Blog. Stay updated with the latest news, stories, and announcements from the Arain World Council community.',1,0],
-['history','Our History','AWC History','The Arain World Council was founded with a vision to unite Arains globally. From humble beginnings, AWC has grown into a worldwide movement for community empowerment and development.',1,1],
-['documentation','Documentation','AWC Documentation','Official documents, policies, and guidelines of the Arain World Council. All resources are available for members and the public.',1,2],
-['environmental','Environmental','AWC Environmental Initiatives','AWC is committed to environmental protection and sustainability. We promote tree planting, clean water initiatives, and eco-friendly community programs.',1,3],
-['gallery_page','Town Gallery','AWC Town Gallery','Explore photos and memories from AWC events, community gatherings, and milestones across cities and countries.',1,4],
-['department','Department','AWC Departments','AWC operates through multiple departments including Education, Welfare, Youth Affairs, Women Empowerment, and International Relations.',1,5],
+['blog','Our Blog','ARAAIN BANNU Blog','Welcome to the ARAAIN BANNU Blog. Stay updated with the latest news, stories, and announcements from the ARAAIN BANNU community.',1,0],
+['history','Our History','ARAAIN BANNU History','The ARAAIN BANNU was founded with a vision to unite Arains globally. From humble beginnings, ARAAIN BANNU has grown into a worldwide movement for community empowerment and development.',1,1],
+['documentation','Documentation','ARAAIN BANNU Documentation','Official documents, policies, and guidelines of the ARAAIN BANNU. All resources are available for members and the public.',1,2],
+['environmental','Environmental','ARAAIN BANNU Environmental Initiatives','ARAAIN BANNU is committed to environmental protection and sustainability. We promote tree planting, clean water initiatives, and eco-friendly community programs.',1,3],
+['gallery_page','Town Gallery','ARAAIN BANNU Gallery','Explore photos and memories from ARAAIN BANNU events, community gatherings, and milestones across cities and countries.',1,4],
+['department','Department','ARAAIN BANNU Departments','ARAAIN BANNU operates through multiple departments including Education, Welfare, Youth Affairs, Women Empowerment, and International Relations.',1,5],
 ];
 const s = _db.prepare('INSERT INTO pages (slug,label,title,body,published,sort_order) VALUES (?,?,?,?,?,?)');
 p.forEach(r => s.run(r));

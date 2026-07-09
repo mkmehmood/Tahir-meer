@@ -1,6 +1,6 @@
 // ================================================================
 //  js/cloud.js  —  Firestore Cloud Sync Layer  (v2)
-//  AWC | Arain World Council | tahir-meer
+//  ARAAIN BANNU | ARAAIN BANNU | tahir-meer
 //
 //  index.html uses:
 //    • fetchAllSiteContent()   — initial load (Promise)
@@ -42,7 +42,7 @@ async function _fetch(key) {
     // settings is a flat object; everything else wraps an items array
     return key === 'settings' ? snap.data() : (snap.data().items || []);
   } catch (e) {
-    console.warn(`[AWC Cloud] fetch(${key}) failed:`, e.message);
+    console.warn(`[ARAAIN BANNU Cloud] fetch(${key}) failed:`, e.message);
     return null;
   }
 }
@@ -71,7 +71,7 @@ export function subscribeToSiteContent(callback) {
         : (snap.data().items || []);
       callback({ ...cache });
     }, err => {
-      console.warn(`[AWC Cloud] onSnapshot(${key}) error:`, err.message);
+      console.warn(`[ARAAIN BANNU Cloud] onSnapshot(${key}) error:`, err.message);
     });
     unsubs.push(unsub);
   });

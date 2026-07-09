@@ -1,39 +1,37 @@
 // ================================================================
-//  js/lang.js  —  i18n via i18next (standard translation library)
-//  AWC | Arain World Council
+//  js/lang.js  —  Synchronous bilingual dictionary
+//  ARAAIN BANNU — Bannu Regional Organisation
 //
-//  Drop-in replacement for the old hand-rolled UR/EN dictionaries.
-//  Same call signature is preserved: t(key, lang) — so app.js
-//  needs ZERO changes beyond this file's import.
-//
-//  i18next loaded from CDN as an ES module (no build step required).
+//  Languages: English (en) and Urdu (ur)
+//  Usage:  t('key', lang)     → translated string
+//          tv('key')          → in app.js, uses module-level `lang`
+//  Both dictionaries have identical keys (211 total).
+//  If a key is missing in the active language the same language's
+//  own dictionary is checked first — never silently crossed.
 // ================================================================
-import i18next from 'https://cdn.jsdelivr.net/npm/i18next@23.16.8/+esm';
 
-// ── Translation resources ──────────────────────────────────────
-// Same flat key→string maps as before, now nested under
-// the {lng}.translation shape i18next expects.
-const EN = {
-siteName:'Arain World Council',
+// ── English dictionary ───────────────────────────────────────
+export const EN = {
+siteName:'ARAAIN BANNU',
 siteTagline:'Unity | Empowerment | Development',
 siteSubName:'Bannu Regional Organisation',
-heroBadge:'Welcome to AWC',
-heroTitle:'Arain World Council',
+heroBadge:'Welcome to ARAAIN BANNU',
+heroTitle:'ARAAIN BANNU',
 heroSub:'Empowering Our Next Generation, Proud Of Our Heritage',
 heroTagline:'Uniting the Arain Community Worldwide — A Global Platform for Arain Excellence | Strength, Unity, Progress',
 heroAboutBtn:'About Us',
 heroEventsBtn:'News & Events',
 aboutLabel:'Who We Are',
-aboutTitle:'Arain World Council (AWC)',
+aboutTitle:'ARAAIN BANNU',
 aboutSubtitle:'Serving Communities Through Welfare, Education, and Empowerment',
-aboutP1:'Arain World Council - AWC is a non-political, welfare-oriented platform established to unite the global Arain community under one vision of progress, unity, and empowerment.',
+aboutP1:'ARAAIN BANNU is a non-political, welfare-oriented platform established to unite the global Arain community under one vision of progress, unity, and empowerment.',
 aboutP2:'The Council actively works in key areas such as education, employment, youth development, and social welfare.',
 aboutP3:'All members contribute voluntarily with dedication and sincerity. The Council believes in transparency, unity, and service to humanity.',
 statMembersLabel:'Members',
 statProgramsLabel:'Programs',
 statCitiesLabel:'Cities',
 chairmanBadge:'Global Chairman',
-joinBtn:'Join AWC',
+joinBtn:'Join ARAAIN BANNU',
 programsLabel:'What We Do',
 programsTitle:'Programs / Initiatives',
 programsDesc:'We work on all the projects below. Our goal is to provide all facilities to the entire Arain community.',
@@ -81,14 +79,14 @@ phSubject:'e.g. Membership Inquiry',
 phMessage:'Write your message here…',
 galleryTitle:'Gallery',
 galleryLabel:'Photo Gallery',
-galleryDesc:'Memories from AWC events and milestones.',
+galleryDesc:'Memories from ARAAIN BANNU events and milestones.',
 galleryEmpty:'No photos yet.',
 noEvents:'No events yet.',
 noPrograms:'No programs yet.',
 noLeaders:'No leaders yet.',
-footerDesc:'Arain World Council unites the global Arain community, empowering youth, promoting education, supporting welfare, and building strong networks for progress worldwide.',
-footerCopy:'© 2026 Arain World Council (AWC) — All Rights Reserved.',
-news1:'AWC Bannu Annual Gathering 2025',
+footerDesc:'ARAAIN BANNU unites the global Arain community, empowering youth, promoting education, supporting welfare, and building strong networks for progress worldwide.',
+footerCopy:'© 2026 ARAAIN BANNU — All Rights Reserved.',
+news1:'ARAAIN BANNU Annual Gathering 2025',
 news2:'Youth Leadership Summit Bannu 2025',
 pageLabBlog:'Our Blog',
 pageLabHistory:'Our History',
@@ -96,19 +94,19 @@ pageLabDocs:'Documentation',
 pageLabEnv:'Environmental',
 pageLabGallery:'Town Gallery',
 pageLabDept:'Department',
-pageTitleBlog:'AWC Blog',
-pageTitleHistory:'AWC History',
-pageTitleDocs:'AWC Documentation',
-pageTitleEnv:'AWC Environmental Initiatives',
-pageTitleGallery:'AWC Town Gallery',
-pageTitleDept:'AWC Departments',
-pageBodyBlog:'Welcome to the AWC Blog. Stay updated with the latest news, stories, and announcements from the Arain World Council community.',
-pageBodyHistory:'The Arain World Council was founded with a vision to unite Arains globally. From humble beginnings, AWC has grown into a worldwide movement for community empowerment and development.',
-pageBodyDocs:'Official documents, policies, and guidelines of the Arain World Council. All resources are available for members and the public.',
-pageBodyEnv:'AWC is committed to environmental protection and sustainability. We promote tree planting, clean water initiatives, and eco-friendly community programs.',
-pageBodyGallery:'Explore photos and memories from AWC events, community gatherings, and milestones across cities and countries.',
-pageBodyDept:'AWC operates through multiple departments including Education, Welfare, Youth Affairs, Women Empowerment, and International Relations.',
-donateToAWC:'Donate to AWC',
+pageTitleBlog:'ARAAIN BANNU Blog',
+pageTitleHistory:'ARAAIN BANNU History',
+pageTitleDocs:'ARAAIN BANNU Documentation',
+pageTitleEnv:'ARAAIN BANNU Environmental Initiatives',
+pageTitleGallery:'ARAAIN BANNU Gallery',
+pageTitleDept:'ARAAIN BANNU Departments',
+pageBodyBlog:'Welcome to the ARAAIN BANNU Blog. Stay updated with the latest news, stories, and announcements from the ARAAIN BANNU community.',
+pageBodyHistory:'The ARAAIN BANNU was founded with a vision to unite Arains globally. From humble beginnings, ARAAIN BANNU has grown into a worldwide movement for community empowerment and development.',
+pageBodyDocs:'Official documents, policies, and guidelines of the ARAAIN BANNU. All resources are available for members and the public.',
+pageBodyEnv:'ARAAIN BANNU is committed to environmental protection and sustainability. We promote tree planting, clean water initiatives, and eco-friendly community programs.',
+pageBodyGallery:'Explore photos and memories from ARAAIN BANNU events, community gatherings, and milestones across cities and countries.',
+pageBodyDept:'ARAAIN BANNU operates through multiple departments including Education, Welfare, Youth Affairs, Women Empowerment, and International Relations.',
+donateToAraainBannu:'Donate to ARAAIN BANNU',
 donSub:'Your donation directly supports the Arain community. Transfer to our verified accounts below.',
 tabBank:'Bank Transfer',
 tabEasypaisa:'Easypaisa',
@@ -133,7 +131,7 @@ bankNote:'After transfer, send receipt to admin@arainworldcouncil.org or WhatsAp
   donTxID:'Transaction ID / Reference No.',
   donTxIDPh:'e.g. TXN12345678',
   donNote:'Additional Note (optional)',
-  donNotePh:'Any message for the AWC team',
+  donNotePh:'Any message for the ARAAIN BANNU team',
   donProof:'Payment Screenshot (optional)',
   donSubmitBtn:'Submit Donation Record',
   donSubmitting:'Submitting…',
@@ -143,22 +141,22 @@ jazzcashNote:'JazzCash App → Send Money → to Mobile. Send screenshot after t
 intNote:'For international transfers allow 3–5 business days. Email admin@arainworldcouncil.org with reference.',
 service:'Service',
 mobileNo:'Mobile No.',
-memAppTitle:'Membership Application — Arain World Council',
-memAppSub:'Join with Us! Fill in the form below to become a member of Arain World Council.',
+memAppTitle:'Membership Application — ARAAIN BANNU',
+memAppSub:'Join with Us! Fill in the form below to become a member of ARAAIN BANNU.',
 memInstrTitle:'Form Instructions',
 memInstr1:'Provide accurate and complete information in all required fields.',
 memInstr2:'Your WhatsApp number must be active and accessible.',
 memInstr3:'CNIC and Email are optional but correct details are recommended.',
 memInstr4:'Our team will contact you after reviewing your application.',
 memInstr5:'Incomplete or incorrect information may lead to rejection.',
-memNote:'Together We Rise — AWC',
+memNote:'Together We Rise — ARAAIN BANNU',
 memPersonal:'Personal Information',
 memContact:'Contact & Residential',
 memProfessional:'Professional Information',
 memAddress:'Profile Picture & Address',
 memTermsTitle:'Terms and Conditions',
 memTerm1:'The information provided is accurate and complete.',
-memTerm2:'AWC reserves the right to accept or reject any application.',
+memTerm2:'ARAAIN BANNU reserves the right to accept or reject any application.',
 memTerm3:'Membership will not be used for political or unlawful purposes.',
 memConsent:'I agree to the Membership Terms',
 submitApp:'Submit Application',
@@ -178,7 +176,7 @@ fResidential:'Residential Status *',
 fAffiliated:'Affiliated with any organization? *',
 fEducation:'Educational Qualification *',
 fWork:'Work Information *',
-fReason:'Why do you want to join AWC?',
+fReason:'Why do you want to join ARAAIN BANNU?',
 fPhoto:'Profile Picture',
 fStreet:'Street Address *',
 fCity:'City *',
@@ -224,31 +222,39 @@ cSaudi:'Saudi Arabia',
 cGermany:'Germany',
 cFrance:'France',
 cNetherlands:'Netherlands',
-cOther:'Other',
+cOther:'Other',  chairmanName:'Tahir Meer',
+  chairmanQuote:'Unity, Empowerment, and Development — the three pillars of ARAAIN BANNU.',
+
+  contactAddressDefault:'Bannu, Khyber Pakhtunkhwa, Pakistan',
+  contactHoursDefault:'Mon – Fri: 8:00 am – 6:00 pm',
+  contactEmailDefault:'admin@arainbannu.org',
+  contactPhoneDefault:'+92-33-9192-9922',
+
 langToggleLabel:'اردو',
 };
 
-const UR = {
-siteName:'ارائیں ورلڈ کونسل',
+// ── Urdu dictionary ──────────────────────────────────────────
+export const UR = {
+siteName:'ارائیں بنوں',
 siteTagline:'اتحاد | بااختیاریت | ترقی',
 siteSubName:'بنوں ریجنل آرگنائزیشن',
-heroBadge:'AWC میں خوش آمدید',
-heroTitle:'ارائیں ورلڈ کونسل',
+heroBadge:'ارائیں بنوں میں خوش آمدید',
+heroTitle:'ارائیں بنوں',
 heroSub:'اپنی اگلی نسل کو بااختیار بنانا، اپنے ورثے پر فخر',
 heroTagline:'ارائیں برادری کو عالمی سطح پر متحد کرنا — طاقت، اتحاد، ترقی',
 heroAboutBtn:'ہمارے بارے میں',
 heroEventsBtn:'خبریں اور تقریبات',
 aboutLabel:'ہم کون ہیں',
-aboutTitle:'ارائیں ورلڈ کونسل (AWC)',
+aboutTitle:'ارائیں بنوں (ارائیں بنوں)',
 aboutSubtitle:'فلاح، تعلیم اور بااختیاریت کے ذریعے خدمت',
-aboutP1:'ارائیں ورلڈ کونسل ایک غیر سیاسی، فلاحی پلیٹ فارم ہے جو عالمی ارائیں برادری کو ترقی، اتحاد اور بااختیاریت کے ایک وژن کے تحت متحد کرنے کے لیے قائم کیا گیا ہے۔',
+aboutP1:'ارائیں بنوں ایک غیر سیاسی، فلاحی پلیٹ فارم ہے جو عالمی ارائیں برادری کو ترقی، اتحاد اور بااختیاریت کے ایک وژن کے تحت متحد کرنے کے لیے قائم کیا گیا ہے۔',
 aboutP2:'کونسل تعلیم، روزگار، نوجوانوں کی ترقی اور سماجی بہبود جیسے شعبوں میں فعال طور پر کام کرتی ہے۔',
 aboutP3:'تمام اراکین بلا امتیاز خلوص اور لگن کے ساتھ رضاکارانہ طور پر معاشرے کی بہتری کے لیے کام کرتے ہیں۔',
 statMembersLabel:'اراکین',
 statProgramsLabel:'پروگرام',
 statCitiesLabel:'شہر',
 chairmanBadge:'گلوبل چیئرمین',
-joinBtn:'AWC میں شامل ہوں',
+joinBtn:'ارائیں بنوں میں شامل ہوں',
 programsLabel:'ہم کیا کرتے ہیں',
 programsTitle:'پروگرام / اقدامات',
 programsDesc:'ہم ذیل کے تمام منصوبوں پر کام کر رہے ہیں۔ ہمارا مقصد پوری ارائیں برادری کو تمام سہولیات فراہم کرنا ہے۔',
@@ -296,14 +302,14 @@ phSubject:'مثلاً: رکنیت کی درخواست',
 phMessage:'اپنا پیغام یہاں لکھیں…',
 galleryTitle:'گیلری',
 galleryLabel:'تصویری گیلری',
-galleryDesc:'AWC تقریبات اور یادوں کی تصاویر۔',
+galleryDesc:'ارائیں بنوں تقریبات اور یادوں کی تصاویر۔',
 galleryEmpty:'ابھی کوئی تصویر نہیں۔',
 noEvents:'ابھی کوئی تقریب نہیں۔',
 noPrograms:'ابھی کوئی پروگرام نہیں۔',
 noLeaders:'ابھی کوئی رہنما نہیں۔',
-footerDesc:'ارائیں ورلڈ کونسل عالمی ارائیں برادری کو متحد کرتی ہے، نوجوانوں کو بااختیار بناتی ہے، تعلیم کو فروغ دیتی ہے اور دنیا بھر میں ترقی کے لیے مضبوط نیٹ ورک بناتی ہے۔',
-footerCopy:'© 2026 ارائیں ورلڈ کونسل (AWC) — جملہ حقوق محفوظ ہیں۔',
-news1:'AWC بنوں سالانہ اجتماع 2025',
+footerDesc:'ارائیں بنوں عالمی ارائیں برادری کو متحد کرتی ہے، نوجوانوں کو بااختیار بناتی ہے، تعلیم کو فروغ دیتی ہے اور دنیا بھر میں ترقی کے لیے مضبوط نیٹ ورک بناتی ہے۔',
+footerCopy:'© 2026 ارائیں بنوں (ارائیں بنوں) — جملہ حقوق محفوظ ہیں۔',
+news1:'ارائیں بنوں سالانہ اجتماع 2025',
 news2:'نوجوان قائدین اجلاس بنوں 2025',
 pageLabBlog:'ہمارا بلاگ',
 pageLabHistory:'ہماری تاریخ',
@@ -311,19 +317,19 @@ pageLabDocs:'دستاویزات',
 pageLabEnv:'ماحولیاتی',
 pageLabGallery:'ٹاؤن گیلری',
 pageLabDept:'محکمہ',
-pageTitleBlog:'AWC بلاگ',
-pageTitleHistory:'AWC کی تاریخ',
-pageTitleDocs:'AWC دستاویزات',
-pageTitleEnv:'AWC ماحولیاتی اقدامات',
-pageTitleGallery:'AWC ٹاؤن گیلری',
-pageTitleDept:'AWC محکمے',
-pageBodyBlog:'AWC بلاگ میں خوش آمدید۔ ارائیں ورلڈ کونسل برادری کی تازہ ترین خبروں، کہانیوں اور اعلانات سے باخبر رہیں۔',
-pageBodyHistory:'ارائیں ورلڈ کونسل ارائیں برادری کو عالمی سطح پر متحد کرنے کے وژن کے ساتھ قائم کی گئی۔ معمولی آغاز سے AWC کمیونٹی بااختیاریت اور ترقی کے لیے ایک عالمی تحریک بن گئی ہے۔',
-pageBodyDocs:'ارائیں ورلڈ کونسل کی سرکاری دستاویزات، پالیسیاں اور رہنما اصول۔ تمام وسائل اراکین اور عوام کے لیے دستیاب ہیں۔',
-pageBodyEnv:'AWC ماحولیاتی تحفظ اور پائیداری کے لیے پرعزم ہے۔ ہم پودے لگانے، صاف پانی کے اقدامات اور ماحول دوست پروگراموں کو فروغ دیتے ہیں۔',
-pageBodyGallery:'دنیا بھر کے شہروں میں AWC تقریبات، کمیونٹی اجتماعات اور سنگ میل سے تصاویر اور یادیں دیکھیں۔',
-pageBodyDept:'AWC متعدد محکموں کے ذریعے کام کرتی ہے جن میں تعلیم، بہبود، نوجوانوں کے امور، خواتین کی بااختیاریت اور بین الاقوامی تعلقات شامل ہیں۔',
-donateToAWC:'AWC کو عطیہ دیں',
+pageTitleBlog:'ارائیں بنوں بلاگ',
+pageTitleHistory:'ارائیں بنوں کی تاریخ',
+pageTitleDocs:'ارائیں بنوں دستاویزات',
+pageTitleEnv:'ارائیں بنوں ماحولیاتی اقدامات',
+pageTitleGallery:'ارائیں بنوں گیلری',
+pageTitleDept:'ارائیں بنوں محکمے',
+pageBodyBlog:'ارائیں بنوں بلاگ میں خوش آمدید۔ ارائیں بنوں برادری کی تازہ ترین خبروں، کہانیوں اور اعلانات سے باخبر رہیں۔',
+pageBodyHistory:'ارائیں بنوں ارائیں برادری کو عالمی سطح پر متحد کرنے کے وژن کے ساتھ قائم کی گئی۔ معمولی آغاز سے ارائیں بنوں کمیونٹی بااختیاریت اور ترقی کے لیے ایک عالمی تحریک بن گئی ہے۔',
+pageBodyDocs:'ارائیں بنوں کی سرکاری دستاویزات، پالیسیاں اور رہنما اصول۔ تمام وسائل اراکین اور عوام کے لیے دستیاب ہیں۔',
+pageBodyEnv:'ارائیں بنوں ماحولیاتی تحفظ اور پائیداری کے لیے پرعزم ہے۔ ہم پودے لگانے، صاف پانی کے اقدامات اور ماحول دوست پروگراموں کو فروغ دیتے ہیں۔',
+pageBodyGallery:'دنیا بھر کے شہروں میں ارائیں بنوں تقریبات، کمیونٹی اجتماعات اور سنگ میل سے تصاویر اور یادیں دیکھیں۔',
+pageBodyDept:'ارائیں بنوں متعدد محکموں کے ذریعے کام کرتی ہے جن میں تعلیم، بہبود، نوجوانوں کے امور، خواتین کی بااختیاریت اور بین الاقوامی تعلقات شامل ہیں۔',
+donateToAraainBannu:'ارائیں بنوں کو عطیہ دیں',
 donSub:'آپ کا عطیہ براہ راست ارائیں برادری کی مدد کرتا ہے۔',
 tabBank:'بینک ٹرانسفر',
 tabEasypaisa:'Easypaisa',
@@ -347,7 +353,7 @@ bankNote:'منتقلی کے بعد رسید ای میل یا واٹس ایپ پ�
   donTxID:'ٹرانزیکشن آئی ڈی / حوالہ نمبر',
   donTxIDPh:'مثال: TXN12345678',
   donNote:'اضافی نوٹ (اختیاری)',
-  donNotePh:'AWC ٹیم کے لیے کوئی پیغام',
+  donNotePh:'ارائیں بنوں ٹیم کے لیے کوئی پیغام',
   donProof:'ادائیگی کا اسکرین شاٹ (اختیاری)',
   donSubmitBtn:'عطیہ ریکارڈ جمع کریں',
   donSubmitting:'جمع ہو رہا ہے…',
@@ -357,22 +363,22 @@ jazzcashNote:'JazzCash ایپ ← پیسے بھیجیں ← موبائل پر۔ 
 intNote:'بین الاقوامی ٹرانسفر کے لیے 3-5 کاروباری دن لگتے ہیں۔ حوالہ نمبر کے ساتھ ای میل کریں۔',
 service:'سروس',
 mobileNo:'موبائل نمبر',
-memAppTitle:'رکنیت کی درخواست — ارائیں ورلڈ کونسل',
-memAppSub:'ہمارے ساتھ شامل ہوں! ارائیں ورلڈ کونسل کے رکن بننے کے لیے نیچے فارم بھریں۔',
+memAppTitle:'رکنیت کی درخواست — ارائیں بنوں',
+memAppSub:'ہمارے ساتھ شامل ہوں! ارائیں بنوں کے رکن بننے کے لیے نیچے فارم بھریں۔',
 memInstrTitle:'فارم ہدایات',
 memInstr1:'تمام ضروری خانوں میں درست اور مکمل معلومات فراہم کریں۔',
 memInstr2:'آپ کا واٹس ایپ نمبر فعال ہونا چاہیے۔',
 memInstr3:'شناختی کارڈ اور ای میل اختیاری ہیں لیکن درست تفصیلات تجویز کی جاتی ہیں۔',
 memInstr4:'ہماری ٹیم جائزے کے بعد آپ سے رابطہ کرے گی۔',
 memInstr5:'ادھوری معلومات رد کا سبب بن سکتی ہے۔',
-memNote:'مل کر ترقی کریں — AWC',
+memNote:'مل کر ترقی کریں — ارائیں بنوں',
 memPersonal:'ذاتی معلومات',
 memContact:'رابطہ اور رہائشی',
 memProfessional:'پیشہ ورانہ معلومات',
 memAddress:'پروفائل تصویر اور پتہ',
 memTermsTitle:'شرائط و ضوابط',
 memTerm1:'فراہم کردہ معلومات درست اور مکمل ہیں۔',
-memTerm2:'AWC کسی بھی درخواست کو قبول یا رد کرنے کا حق رکھتی ہے۔',
+memTerm2:'ارائیں بنوں کسی بھی درخواست کو قبول یا رد کرنے کا حق رکھتی ہے۔',
 memTerm3:'رکنیت سیاسی یا غیر قانونی مقاصد کے لیے استعمال نہیں ہوگی۔',
 memConsent:'میں رکنیت کی شرائط سے متفق ہوں',
 submitApp:'درخواست جمع کرائیں',
@@ -392,7 +398,7 @@ fResidential:'رہائشی حیثیت *',
 fAffiliated:'کسی تنظیم سے وابستہ؟ *',
 fEducation:'تعلیمی قابلیت *',
 fWork:'کام کی معلومات *',
-fReason:'آپ AWC میں کیوں شامل ہونا چاہتے ہیں؟',
+fReason:'آپ ارائیں بنوں میں کیوں شامل ہونا چاہتے ہیں؟',
 fPhoto:'پروفائل تصویر',
 fStreet:'گلی کا پتہ *',
 fCity:'شہر *',
@@ -438,42 +444,25 @@ cSaudi:'سعودی عرب',
 cGermany:'جرمنی',
 cFrance:'فرانس',
 cNetherlands:'نیدرلینڈز',
-cOther:'دیگر',
+cOther:'دیگر',  chairmanName:'طاہر میر',
+  chairmanQuote:'اتحاد، بااختیاریت، اور ترقی — ارائیں بنوں کے تین ستون۔',
+
+  contactAddressDefault:'بنوں، خیبرپختونخوا، پاکستان',
+  contactHoursDefault:'پیر – جمعہ: صبح ۸ – شام ۶',
+  contactEmailDefault:'admin@arainbannu.org',
+  contactPhoneDefault:'+92-33-9192-9922',
+
 langToggleLabel:'English',
 };
 
-await i18next.init({
-  lng: localStorage.getItem('awc_lang') || 'ur',
-  // No fallbackLng — each language is self-contained.
-  // If a key is missing in the active language, t() below falls back
-  // to that SAME language's own dictionary lookup, never the other language,
-  // so the page never silently mixes English and Urdu together.
-  fallbackLng: false,
-  resources: {
-    en: { translation: EN },
-    ur: { translation: UR },
-  },
-  interpolation: { escapeValue: false },
-  returnEmptyString: false,
-  returnNull: false,
-});
-
-// ── t(key, lang) — same signature app.js already calls ──────────
-// Switches i18next's active language on the fly if it differs
-// from what's currently loaded, then returns the translated string.
-// Falls back to the raw key if no translation exists (matches old behaviour).
+// ── t(key, lang) — synchronous, no external dependencies ─────
+// Returns the translation for `key` in the requested language.
+// Falls back to the OTHER language only as absolute last resort
+// (key truly missing from both) — never mixes languages silently.
 export function t(key, lang) {
-  if (lang && i18next.language !== lang) {
-    i18next.changeLanguage(lang);
-  }
-  const val = i18next.t(key);
-  if (val !== key) return val;
-  // Missing from i18next's active bundle — fall back to the SAME
-  // language's own raw dictionary (never the other language),
-  // so a missing Urdu key never silently shows English, or vice versa.
-  const dict = (lang || i18next.language) === 'ur' ? UR : EN;
-  return dict[key] || key;
+  const primary   = lang === 'ur' ? UR : EN;
+  const secondary = lang === 'ur' ? EN : UR;
+  if (primary[key]   !== undefined) return primary[key];
+  if (secondary[key] !== undefined) return secondary[key];
+  return key;  // bare key as last resort — never empty string
 }
-
-// ── Exported for any code still doing direct dictionary lookups ──
-export { EN, UR };

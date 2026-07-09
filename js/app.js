@@ -1,20 +1,21 @@
 // ================================================================
-//  js/app.js  —  AWC Frontend Engine  (v3 — full dynamic render)
+//  js/app.js  —  ARAAIN BANNU Frontend Engine  (v3 — full dynamic render)
 //  All content comes from Firestore (cloud) first.
 //  Falls back to local SQLite seed if offline.
 //  Live onSnapshot keeps index.html updated without refresh.
 // ================================================================
 import { initDB, getAllSettings, getPrograms, getLeaders, getEvents,
          getPages, getPage, getGallery, addSubmission, addMessage, addDonation }
-  from './db.js?v=1783143407';
-import { saveRegistrationToCloud, saveDonationToCloud } from './firebase.js?v=1783143407';
-import { fetchAllSiteContent, subscribeToSiteContent } from './cloud.js?v=1783143407';
-import { t, EN, UR } from './lang.js?v=1783143407';
-import { iconHTML } from './icons.js?v=1783143407';
+  from './db.js?v=1783561847';
+import { saveRegistrationToCloud, saveDonationToCloud } from './firebase.js?v=1783561847';
+import { fetchAllSiteContent, subscribeToSiteContent } from './cloud.js?v=1783561847';
+import { translateAll, translateElement } from './translate.js?v=1783561847';
+import { t, EN, UR } from './lang.js?v=1783561847';
+import { iconHTML } from './icons.js?v=1783561847';
 
 // ── State ─────────────────────────────────────────────────────
 let S    = {};   // flat settings object
-let lang = localStorage.getItem('awc_lang') || 'ur';
+let lang = localStorage.getItem('araain_bannu_lang') || 'ur';
 let _ro;         // IntersectionObserver for .reveal
 
 // Cloud content — null means "not yet loaded from Firestore"
@@ -43,19 +44,17 @@ const esc = s   => String(s||'')
 const set = (id, text) => { const el = g(id); if (el) el.textContent = text; };
 const setHTML = (id, html) => { const el = g(id); if (el) el.innerHTML = html; };
 
-// Translatable value: returns content ONLY in the currently selected
-// language — never mixes English and Urdu on the same page.
-//
-// Priority for Urdu:   UR[key]  →  EN[key]  (last resort, clearly labelled to admin)
-// Priority for English: S[key] (cloud/admin override) → EN[key]
-//
-// Cloud-saved admin overrides (S[key]) are English-only content by
-// design (the admin panel has no language toggle), so they are only
-// ever applied when the page itself is in English. This is what
-// previously caused English cloud text to leak into Urdu pages.
+// tv(key) — translatable value with cloud override support.
+// Priority order:
+//   1. S[key]   — admin-set cloud value (works for both languages)
+//   2. UR[key]  — Urdu dict (when lang=ur)
+//   3. EN[key]  — English dict fallback
+// Cloud values (S[key]) are set by the admin in the dashboard.
+// When lang=ur and no S[key] is set, UR[key] provides the Urdu default.
 const tv = key => {
+  if (S[key]) return S[key];        // cloud admin override always wins
   if (lang === 'ur') return UR[key] || EN[key] || '';
-  return S[key] || EN[key] || '';
+  return EN[key] || '';
 };
 
 // ── Boot ──────────────────────────────────────────────────────
@@ -70,7 +69,7 @@ async function boot() {
     const cloud = await fetchAllSiteContent();
     applyCloudPatch(cloud);
   } catch (err) {
-    console.warn('[AWC] Firestore unavailable, using local seed:', err.message);
+    console.warn('[ARAAIN BANNU] Firestore unavailable, using local seed:', err.message);
     S = getAllSettings();
   }
 
@@ -109,7 +108,7 @@ function applyCloudPatch(patch) {
   // Sync page <title> to org name
   const titleEl = g('pageTitle');
   if (titleEl && S.siteName) {
-    titleEl.textContent = (S.siteName || 'AWC')
+    titleEl.textContent = (S.siteName || 'ARAAIN BANNU')
       + (S.siteSubName ? ' — ' + S.siteSubName : '');
   }
 }
@@ -125,6 +124,89 @@ function applyDir() {
   document.documentElement.setAttribute('lang', lang);
   document.documentElement.setAttribute('dir', isUr ? 'rtl' : 'ltr');
   document.body.classList.toggle('urdu', isUr);
+}
+
+// ── Async Urdu translation of admin-entered content ───────────
+// Runs AFTER renderAll() has already shown the page (instant render).
+// Replaces any English S[key] content with API-translated Urdu,
+// only when lang=ur and the content looks like English.
+async function translateAdminContent() {
+  if (lang !== 'ur') return;
+
+  // Map of DOM element ID → current S[key] value that may be English
+  // Only include elements where the admin might have typed English text
+  const contentMap = {
+    'heroTitle':         S.heroTitle        || '',
+    'heroSub':           S.heroSub          || '',
+    'heroTagline':       S.heroTagline      || '',
+    'heroBadge':         S.heroBadge        || '',
+    'about-h2':          S.aboutTitle       || '',
+    'about-h3':          S.aboutSubtitle    || '',
+    'about-p1':          S.aboutP1          || '',
+    'about-p2':          S.aboutP2          || '',
+    'about-p3':          S.aboutP3          || '',
+    'chairman-quote':    S.chairmanQuote    || '',
+    'chairman-name':     S.chairmanName     || '',
+    'programsTitle':     S.programsTitle    || '',
+    'programsDesc':      S.programsDesc     || '',
+    'leadershipTitle':   S.leadershipTitle  || '',
+    'eventsTitle':       S.eventsTitle      || '',
+    'galleryTitle':      S.galleryTitle     || '',
+    'galleryDesc':       S.galleryDesc      || '',
+    'ctaMemberTitle':    S.membershipTitle  || '',
+    'ctaMemberDesc':     S.membershipDesc   || '',
+    'ctaDonateTitle':    S.donateTitle      || '',
+    'ctaDonateDesc':     S.donateDesc       || '',
+    'footerDesc':        S.footerDesc       || '',
+    'footerCopy':        S.footerCopy       || '',
+    'contactAddress':    S.contactAddress   || '',
+    'contactHours':      S.contactHours     || '',
+    'footerContactAddress': S.contactAddress || '',
+    'footerSiteName':    S.siteName         || '',
+    'footerSubName':     S.siteSubName      || '',
+  };
+
+  // Filter: only translate non-empty values that are actually English
+  const toTranslate = {};
+  const isUrduText = t => /[\u0600-\u06FF]/.test(t);
+  for (const [id, text] of Object.entries(contentMap)) {
+    if (text && !isUrduText(text)) toTranslate[id] = text;
+  }
+  if (!Object.keys(toTranslate).length) return;
+
+  // Batch-translate all in parallel (MyMemory API)
+  try {
+    const translated = await translateAll(toTranslate);
+    for (const [id, urdu] of Object.entries(translated)) {
+      const el = g(id);
+      if (el && urdu && urdu !== toTranslate[id]) el.textContent = urdu;
+    }
+
+    // Also translate program card titles/descriptions
+    const progCards = document.querySelectorAll('.prog-card');
+    for (const card of progCards) {
+      const h3 = card.querySelector('h3');
+      const p  = card.querySelector('p');
+      if (h3 && h3.textContent) {
+        const urduH3 = await translateAll({ t: h3.textContent });
+        if (urduH3.t !== h3.textContent) h3.textContent = urduH3.t;
+      }
+      if (p && p.textContent) {
+        const urduP = await translateAll({ t: p.textContent });
+        if (urduP.t !== p.textContent) p.textContent = urduP.t;
+      }
+    }
+
+    // Translate event titles
+    for (const h4 of document.querySelectorAll('.event-body h4')) {
+      if (h4.textContent) {
+        const r = await translateAll({ t: h4.textContent });
+        if (r.t !== h4.textContent) h4.textContent = r.t;
+      }
+    }
+  } catch (err) {
+    console.warn('[ARAAIN BANNU] Content translation failed:', err.message);
+  }
 }
 
 // ── Master render ─────────────────────────────────────────────
@@ -144,6 +226,9 @@ function renderAll() {
   renderDonationModal();
   rebuildMembershipForm();
   set('langBtn', t('langToggleLabel', lang));
+  // Post-render: auto-translate any English admin-set content to Urdu
+  // Runs async so initial render is instant, Urdu replaces in ~1-2s
+  translateAdminContent().catch(console.warn);
 }
 
 // ── Header ────────────────────────────────────────────────────
@@ -153,7 +238,7 @@ function renderHeader() {
     logo.innerHTML = S.logoData
       ? `<img src="${esc(S.logoData)}" alt="logo"
            style="height:52px;width:52px;object-fit:cover;border-radius:12px"/>`
-      : `<div class="logo-icon">${esc(tv('siteName')).substring(0,3)||'AWC'}</div>`;
+      : `<div class="logo-icon">${esc(tv('siteName')).substring(0,5)||'ARAAIN'}</div>`;
   }
   set('headerSiteName', tv('siteName'));
   set('headerTagline',  tv('siteTagline'));
@@ -345,17 +430,25 @@ function renderContact() {
   set('hoursLabel',          t('hoursLabel', lang));
   set('phoneLabel',          t('phoneLabel', lang));
   set('emailLabel',          t('emailLabel', lang));
-  set('contactAddress',      tv('contactAddress'));
-  set('contactHours',        tv('contactHours'));
+  // Contact details: use cloud S[key] if admin has set them,
+  // otherwise fall back to the correct language dict default
+  const cAddr  = S.contactAddress || t(lang==='ur' ? 'contactAddressDefault' : 'contactAddressDefault', lang);
+  const cHours = S.contactHours   || t('contactHoursDefault', lang);
+  set('contactAddress', cAddr);
+  set('contactHours',   cHours);
 
   const cp = g('contactPhone');
   if (cp) {
-    cp.textContent = tv('contactPhone');
-    cp.href = 'https://wa.me/' + (tv('contactPhone')||'').replace(/\D/g,'');
+    const phone = S.contactPhone || t('contactPhoneDefault', lang);
+    cp.textContent = phone;
+    cp.href = 'https://wa.me/' + (phone||'').replace(/\D/g,'');
   }
   const ce = g('contactEmail');
-  if (ce) { ce.textContent = tv('contactEmail'); ce.href = 'mailto:' + tv('contactEmail'); }
-
+  if (ce) {
+    const email = S.contactEmail || t('contactEmailDefault', lang);
+    ce.textContent = email;
+    ce.href = 'mailto:' + email;
+  }
   const sb = qs('#contactForm [type=submit]');
   if (sb) sb.textContent = t('sendMessage', lang);
 
@@ -373,7 +466,7 @@ function renderContact() {
 // ── Footer ────────────────────────────────────────────────────
 function renderFooter() {
   // Logo abbreviation in footer: first 3 chars of org name
-  const abbr = (tv('siteName') || 'AWC').substring(0,3).toUpperCase();
+  const abbr = (tv('siteName') || 'ARAAIN BANNU').substring(0,2).toUpperCase();
   const footerLogoIcon = qs('.site-footer .logo-icon');
   if (footerLogoIcon && !S.logoData) footerLogoIcon.textContent = abbr;
 
@@ -384,12 +477,13 @@ function renderFooter() {
   set('footerUsefulLinks', t('usefulLinks', lang));
   set('footerRecentNews',  t('recentNews', lang));
   set('footerContactUs',   t('contactUsFooter', lang));
-  set('footerContactAddress', tv('contactAddress'));
+  set('footerContactAddress', S.contactAddress || t('contactAddressDefault', lang));
 
   const fcp = g('footerContactPhone');
   if (fcp) {
-    fcp.textContent = tv('contactPhone');
-    fcp.href = 'https://wa.me/' + (tv('contactPhone')||'').replace(/\D/g,'');
+    const fPhone = S.contactPhone || t('contactPhoneDefault', lang);
+    fcp.textContent = fPhone;
+    fcp.href = 'https://wa.me/' + (fPhone||'').replace(/\D/g,'');
   }
 
   // Footer news — pull from events if available
@@ -451,7 +545,7 @@ function openPageModal(slug) {
 
 // ── Donation modal ────────────────────────────────────────────
 function renderDonationModal() {
-  set('donModalTitle',  t('donateToAWC', lang));
+  set('donModalTitle',  t('donateToAraainBannu', lang));
   set('donModalSub',    t('donSub', lang));
   set('donAmtLabel',    t('suggestedAmounts', lang));
   set('donCustomLabel', t('custom', lang));
@@ -459,10 +553,16 @@ function renderDonationModal() {
   const lblMap = {
     'bl-bankName':'bankName','bl-bankTitle':'accountTitle',
     'bl-bankAccount':'accountNo','bl-bankIBAN':'IBAN','bl-bankBranch':'branchCode',
+    'bl-epNumber':'mobileNo','bl-jcNumber':'mobileNo',
+    'bl-intSwift':'swiftBic','bl-intIBAN':'IBAN',
   };
   Object.entries(lblMap).forEach(([id, tk]) => {
     const el = g(id); if (el) el.textContent = t(tk, lang);
   });
+
+  // Also update CNIC and WhatsApp labels in membership form
+  const lCnic = g('lCnic'); if (lCnic) lCnic.textContent = t('fCnic', lang);
+  const lWa   = g('lWhatsapp'); if (lWa) lWa.textContent = t('fWhatsapp', lang);
 
   const valMap = {
     'bv-bankName':'bankName', 'bv-bankTitle':'bankTitle',
@@ -683,7 +783,7 @@ function bindNav() {
   if (lb) {
     lb.addEventListener('click', () => {
       lang = lang === 'en' ? 'ur' : 'en';
-      localStorage.setItem('awc_lang', lang);
+      localStorage.setItem('araain_bannu_lang', lang);
       renderAll();
       document.body.classList.add('lang-flash');
       setTimeout(() => document.body.classList.remove('lang-flash'), 400);
@@ -854,7 +954,7 @@ function bindForms() {
         try {
           data.photoData = await compressImageToDataURL(photoFile);
         } catch (err) {
-          console.warn('[AWC] Photo compression failed, submitting without photo:', err);
+          console.warn('[ARAAIN BANNU] Photo compression failed, submitting without photo:', err);
           data.photoData = '';
         }
       } else {
@@ -867,7 +967,7 @@ function bindForms() {
 
       await addSubmission(data).catch(console.error);
       await saveRegistrationToCloud(data).catch(err =>
-        console.warn('[AWC] Firestore write failed:', err));
+        console.warn('[ARAAIN BANNU] Firestore write failed:', err));
 
       setTimeout(() => {
         btn.disabled    = false;
@@ -906,7 +1006,7 @@ function bindForms() {
       let photoData = '';
       if (proofFile && proofFile.size > 0) {
         try { photoData = await compressImageToDataURL(proofFile, 800, 0.75); }
-        catch (e) { console.warn('[AWC] Screenshot compress failed:', e); }
+        catch (e) { console.warn('[ARAAIN BANNU] Screenshot compress failed:', e); }
       }
 
       const data = {
@@ -922,7 +1022,7 @@ function bindForms() {
 
       await addDonation(data).catch(console.error);
       await saveDonationToCloud(data).catch(err =>
-        console.warn('[AWC] Donation cloud save failed:', err));
+        console.warn('[ARAAIN BANNU] Donation cloud save failed:', err));
 
       setTimeout(() => {
         btn.disabled    = false;
