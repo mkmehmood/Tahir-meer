@@ -6,12 +6,12 @@
 // ================================================================
 import { initDB, getAllSettings, getPrograms, getLeaders, getEvents,
          getPages, getPage, getGallery, addSubmission, addMessage, addDonation }
-  from './db.js?v=1783561847';
-import { saveRegistrationToCloud, saveDonationToCloud } from './firebase.js?v=1783561847';
-import { fetchAllSiteContent, subscribeToSiteContent } from './cloud.js?v=1783561847';
-import { translateAll, translateElement } from './translate.js?v=1783561847';
-import { t, EN, UR } from './lang.js?v=1783561847';
-import { iconHTML } from './icons.js?v=1783561847';
+  from './db.js?v=1784105824';
+import { saveRegistrationToCloud, saveDonationToCloud } from './firebase.js?v=1784105824';
+import { fetchAllSiteContent, subscribeToSiteContent } from './cloud.js?v=1784105824';
+import { initTranslations, prefetchAllTranslations, translateAll } from './translate.js?v=1784105824';
+import { t, EN } from './lang.js?v=1784105824';
+import { iconHTML } from './icons.js?v=1784105824';
 
 // ── State ─────────────────────────────────────────────────────
 let S    = {};   // flat settings object
@@ -53,27 +53,68 @@ const setHTML = (id, html) => { const el = g(id); if (el) el.innerHTML = html; }
 // When lang=ur and no S[key] is set, UR[key] provides the Urdu default.
 const tv = key => {
   if (S[key]) return S[key];        // cloud admin override always wins
-  if (lang === 'ur') return UR[key] || EN[key] || '';
+  if (lang === 'ur') return t(key, 'ur') || EN[key] || '';
   return EN[key] || '';
 };
 
 // ── Boot ──────────────────────────────────────────────────────
+// Wrapped in try/finally so loaderShow(false) ALWAYS runs, no matter
+// what throws inside — the splash screen can never get stuck forever.
 async function boot() {
   loaderShow(true);
 
-  // 1. Init local SQLite (offline fallback + submission storage)
-  await initDB().catch(console.error);
-
-  // 2. Fetch all site content from Firestore on first load
   try {
-    const cloud = await fetchAllSiteContent();
-    applyCloudPatch(cloud);
+    // 1. Init local SQLite
+    await initDB().catch(console.error);
+
+    // 2. Load translation cache from localStorage (instant — no network needed)
+    const cacheReady = initTranslations();
+
+    // 3. Show translation progress overlay for Urdu cold start
+    if (lang === 'ur' && !cacheReady) {
+      _showTransProgress(0, 1);
+    }
+
+    // 4. Fetch Firestore content
+    try {
+      const cloud = await fetchAllSiteContent();
+      applyCloudPatch(cloud);
+    } catch (err) {
+      console.warn('[ARAAIN BANNU] Firestore unavailable, using local seed:', err.message);
+      S = getAllSettings();
+    }
+
+    // 5. Urdu cold start: fetch & cache all UI translations before first render.
+    //    HARD CAPPED at 12 seconds total — if translation APIs are slow,
+    //    blocked, or unreachable, we stop waiting and render with whatever
+    //    got cached so far (English fallback for the rest). Translation
+    //    continues silently in the background via translateAdminContent()
+    //    on subsequent renders, so nothing is ever permanently stuck.
+    if (lang === 'ur' && !cacheReady) {
+      const MAX_WAIT_MS = 12000;
+      let timedOut = false;
+      const timeoutPromise = new Promise(resolve => {
+        setTimeout(() => { timedOut = true; resolve(); }, MAX_WAIT_MS);
+      });
+      await Promise.race([
+        prefetchAllTranslations((done, total) => {
+          if (!timedOut) _showTransProgress(done, total);
+        }),
+        timeoutPromise,
+      ]).catch(err => console.warn('[ARAAIN BANNU] Translation prefetch error:', err.message));
+      _hideTransProgress();
+    }
   } catch (err) {
-    console.warn('[ARAAIN BANNU] Firestore unavailable, using local seed:', err.message);
-    S = getAllSettings();
+    // Should be unreachable given the inner guards above, but this is the
+    // final safety net — the page must always become visible and usable.
+    console.error('[ARAAIN BANNU] Boot error (recovering):', err);
+    if (!S || !Object.keys(S).length) S = getAllSettings();
+  } finally {
+    // GUARANTEED to run — the splash screen is always dismissed.
+    loaderShow(false);
+    _hideTransProgress();
   }
 
-  loaderShow(false);
   renderAll();
   bindNav();
   bindModals();
@@ -85,16 +126,66 @@ async function boot() {
   initCounters();
   observeReveal();
 
-  // 3. Subscribe to live updates — re-render affected sections
-  //    when admin saves anything in the dashboard
+  // 6. Live Firestore subscription — re-render on admin saves
   subscribeToSiteContent(patch => {
     applyCloudPatch(patch);
-    renderAll();      // re-render everything; fast because it's pure DOM ops
+    renderAll();
     bindCopyBtns();
     initCounters();
     observeReveal();
   });
 }
+
+// ── Translation progress overlay ──────────────────────────────
+// Shown only on the very first Urdu page load on a new device.
+// After prefetch completes, all translations live in localStorage
+// and this overlay never appears again.
+function _showTransProgress(done, total) {
+  let ov = g('_transOv');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = '_transOv';
+    ov.style.cssText =
+      'position:fixed;inset:0;z-index:10000;background:var(--bg);' +
+      'display:flex;flex-direction:column;align-items:center;' +
+      'justify-content:center;gap:20px;font-family:var(--font-en);' +
+      'padding:24px;text-align:center;';
+    ov.innerHTML =
+      '<div style="width:52px;height:52px;border:3px solid rgba(109,40,217,.2);' +
+      'border-top-color:var(--purple);border-radius:50%;' +
+      'animation:spin .75s linear infinite"></div>' +
+      '<div>' +
+        '<p style="color:var(--text);font-size:17px;font-weight:700;margin-bottom:6px">' +
+          'ترجمہ ہو رہا ہے…' +
+        '</p>' +
+        '<p style="color:var(--text-muted);font-size:13px">' +
+          'Setting up Urdu — one-time download' +
+        '</p>' +
+      '</div>' +
+      '<div style="width:min(280px,80vw);background:var(--bg-card2);' +
+      'border-radius:30px;height:8px;overflow:hidden">' +
+        '<div id="_transBar" style="height:100%;width:0%;border-radius:30px;' +
+        'background:linear-gradient(90deg,var(--purple),var(--purple-lt));' +
+        'transition:width .25s ease"></div>' +
+      '</div>' +
+      '<p id="_transLbl" style="color:var(--text-muted);font-size:12px"></p>';
+    document.body.appendChild(ov);
+  }
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const bar = g('_transBar');
+  const lbl = g('_transLbl');
+  if (bar) bar.style.width = pct + '%';
+  if (lbl) lbl.textContent = done + ' / ' + total + ' strings';
+}
+
+function _hideTransProgress() {
+  const ov = g('_transOv');
+  if (!ov) return;
+  ov.style.transition = 'opacity .4s ease';
+  ov.style.opacity = '0';
+  setTimeout(() => ov.remove(), 450);
+}
+
 
 // Apply a cloud patch object — only overwrite keys that arrived non-null
 function applyCloudPatch(patch) {
@@ -781,9 +872,31 @@ function bindNav() {
 
   const lb = g('langBtn');
   if (lb) {
-    lb.addEventListener('click', () => {
+    lb.addEventListener('click', async () => {
       lang = lang === 'en' ? 'ur' : 'en';
       localStorage.setItem('araain_bannu_lang', lang);
+
+      // If switching to Urdu and cache is cold, prefetch first —
+      // hard-capped so the toggle button can never hang indefinitely.
+      if (lang === 'ur') {
+        try {
+          const ready = initTranslations();
+          if (!ready) {
+            _showTransProgress(0, 1);
+            const MAX_WAIT_MS = 12000;
+            const timeoutPromise = new Promise(resolve => setTimeout(resolve, MAX_WAIT_MS));
+            await Promise.race([
+              prefetchAllTranslations((done, total) => _showTransProgress(done, total)),
+              timeoutPromise,
+            ]);
+          }
+        } catch (err) {
+          console.warn('[ARAAIN BANNU] Translation prefetch error:', err.message);
+        } finally {
+          _hideTransProgress();
+        }
+      }
+
       renderAll();
       document.body.classList.add('lang-flash');
       setTimeout(() => document.body.classList.remove('lang-flash'), 400);

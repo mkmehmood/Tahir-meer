@@ -1,4 +1,12 @@
-const DB_NAME = 'araain_bannu_sqlite_v4';
+// v5: bumped from v4 because the 'donations' table and 'photo_data'
+// column (submissions) were added after v4 databases were already
+// created for some users. CREATE TABLE IF NOT EXISTS does not alter
+// existing tables, so anyone with a persisted v4 database would be
+// permanently missing the donations table / photo_data column and
+// every query against them would throw. Bumping the version forces
+// a clean, fully-current schema for everyone, old data simply starts
+// fresh (this is a low-traffic admin tool, not user-facing data loss).
+const DB_NAME = 'araain_bannu_sqlite_v5';
 const IDB_STORE = 'araain_bannu_db';
 const IDB_KEY = 'main';
 let _db = null;

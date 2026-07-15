@@ -1,16 +1,21 @@
 // ================================================================
-//  js/lang.js  —  Synchronous bilingual dictionary
-//  ARAAIN BANNU — Bannu Regional Organisation
+//  js/lang.js  —  Translation source dictionary
+//  ARAAIN BANNU
 //
-//  Languages: English (en) and Urdu (ur)
-//  Usage:  t('key', lang)     → translated string
-//          tv('key')          → in app.js, uses module-level `lang`
-//  Both dictionaries have identical keys (211 total).
-//  If a key is missing in the active language the same language's
-//  own dictionary is checked first — never silently crossed.
+//  EN is the single source of truth for all UI strings.
+//  The UR (Urdu) dictionary has been removed — translations are
+//  now fetched from the MyMemory API and stored permanently in
+//  localStorage (see js/translate.js).
+//
+//  Cache key:  ab_translations_780a90fb
+//  Bust cache: change any EN value → hash changes → auto re-fetch
+//
+//  Usage in app.js:
+//    t('key', lang)  →  EN string (en) or cached Urdu (ur)
+//    tv('key')       →  cloud S[key] or EN/cached Urdu fallback
 // ================================================================
 
-// ── English dictionary ───────────────────────────────────────
+// ── English source dictionary (216 keys) ─────────────────────
 export const EN = {
 siteName:'ARAAIN BANNU',
 siteTagline:'Unity | Empowerment | Development',
@@ -233,236 +238,24 @@ cOther:'Other',  chairmanName:'Tahir Meer',
 langToggleLabel:'اردو',
 };
 
-// ── Urdu dictionary ──────────────────────────────────────────
-export const UR = {
-siteName:'ارائیں بنوں',
-siteTagline:'اتحاد | بااختیاریت | ترقی',
-siteSubName:'بنوں ریجنل آرگنائزیشن',
-heroBadge:'ارائیں بنوں میں خوش آمدید',
-heroTitle:'ارائیں بنوں',
-heroSub:'اپنی اگلی نسل کو بااختیار بنانا، اپنے ورثے پر فخر',
-heroTagline:'ارائیں برادری کو عالمی سطح پر متحد کرنا — طاقت، اتحاد، ترقی',
-heroAboutBtn:'ہمارے بارے میں',
-heroEventsBtn:'خبریں اور تقریبات',
-aboutLabel:'ہم کون ہیں',
-aboutTitle:'ارائیں بنوں (ارائیں بنوں)',
-aboutSubtitle:'فلاح، تعلیم اور بااختیاریت کے ذریعے خدمت',
-aboutP1:'ارائیں بنوں ایک غیر سیاسی، فلاحی پلیٹ فارم ہے جو عالمی ارائیں برادری کو ترقی، اتحاد اور بااختیاریت کے ایک وژن کے تحت متحد کرنے کے لیے قائم کیا گیا ہے۔',
-aboutP2:'کونسل تعلیم، روزگار، نوجوانوں کی ترقی اور سماجی بہبود جیسے شعبوں میں فعال طور پر کام کرتی ہے۔',
-aboutP3:'تمام اراکین بلا امتیاز خلوص اور لگن کے ساتھ رضاکارانہ طور پر معاشرے کی بہتری کے لیے کام کرتے ہیں۔',
-statMembersLabel:'اراکین',
-statProgramsLabel:'پروگرام',
-statCitiesLabel:'شہر',
-chairmanBadge:'گلوبل چیئرمین',
-joinBtn:'ارائیں بنوں میں شامل ہوں',
-programsLabel:'ہم کیا کرتے ہیں',
-programsTitle:'پروگرام / اقدامات',
-programsDesc:'ہم ذیل کے تمام منصوبوں پر کام کر رہے ہیں۔ ہمارا مقصد پوری ارائیں برادری کو تمام سہولیات فراہم کرنا ہے۔',
-teamLabel:'ہماری ٹیم',
-leadershipTitle:'ہماری قیادت سے ملیں',
-upcomingLabel:'آنے والی',
-eventsTitle:'تقریبات اور پروگرام',
-touchLabel:'رابطہ کریں',
-contactUs:'ہم سے رابطہ کریں',
-addressLabel:'پتہ',
-hoursLabel:'اوقات کار',
-phoneLabel:'فون',
-emailLabel:'ای میل',
-usefulLinks:'مفید روابط',
-recentNews:'تازہ خبریں',
-contactUsFooter:'رابطہ کریں',
-navHome:'ہوم',
-navAbout:'ہمارے بارے میں',
-navPrograms:'پروگرام',
-navLeadership:'قیادت',
-navEvents:'تقریبات',
-navContact:'رابطہ',
-navMembership:'رکنیت',
-navGallery:'گیلری',
-heroDept:'محکمے',
-heroEvents:'تقریبات',
-heroGallery:'گیلری',
-heroGuide:'وزیٹرز گائیڈ',
-membershipTitle:'رکنیت کے لیے درخواست دیں',
-membershipDesc:'خالی سے روشنی تک، راستے بناتے ہوئے جہاں زندہ لمحات پائیدار سفر بن جاتے ہیں۔',
-donateTitle:'عطیہ دیں',
-donateDesc:'کیا آپ ارائیں خاندان کی مدد کرنا چاہتے ہیں؟',
-registerNow:'ابھی رجسٹر کریں',
-donateNow:'ابھی عطیہ کریں',
-seeAllMembers:'تمام اراکین دیکھیں',
-moreDetails:'مزید تفصیل',
-formName:'آپ کا نام',
-formEmail:'ای میل پتہ',
-formSubject:'موضوع',
-formMessage:'پیغام',
-sendMessage:'پیغام بھیجیں',
-phName:'محمد علی ارائیں',
-phEmail:'آپ کا ای میل',
-phSubject:'مثلاً: رکنیت کی درخواست',
-phMessage:'اپنا پیغام یہاں لکھیں…',
-galleryTitle:'گیلری',
-galleryLabel:'تصویری گیلری',
-galleryDesc:'ارائیں بنوں تقریبات اور یادوں کی تصاویر۔',
-galleryEmpty:'ابھی کوئی تصویر نہیں۔',
-noEvents:'ابھی کوئی تقریب نہیں۔',
-noPrograms:'ابھی کوئی پروگرام نہیں۔',
-noLeaders:'ابھی کوئی رہنما نہیں۔',
-footerDesc:'ارائیں بنوں عالمی ارائیں برادری کو متحد کرتی ہے، نوجوانوں کو بااختیار بناتی ہے، تعلیم کو فروغ دیتی ہے اور دنیا بھر میں ترقی کے لیے مضبوط نیٹ ورک بناتی ہے۔',
-footerCopy:'© 2026 ارائیں بنوں (ارائیں بنوں) — جملہ حقوق محفوظ ہیں۔',
-news1:'ارائیں بنوں سالانہ اجتماع 2025',
-news2:'نوجوان قائدین اجلاس بنوں 2025',
-pageLabBlog:'ہمارا بلاگ',
-pageLabHistory:'ہماری تاریخ',
-pageLabDocs:'دستاویزات',
-pageLabEnv:'ماحولیاتی',
-pageLabGallery:'ٹاؤن گیلری',
-pageLabDept:'محکمہ',
-pageTitleBlog:'ارائیں بنوں بلاگ',
-pageTitleHistory:'ارائیں بنوں کی تاریخ',
-pageTitleDocs:'ارائیں بنوں دستاویزات',
-pageTitleEnv:'ارائیں بنوں ماحولیاتی اقدامات',
-pageTitleGallery:'ارائیں بنوں گیلری',
-pageTitleDept:'ارائیں بنوں محکمے',
-pageBodyBlog:'ارائیں بنوں بلاگ میں خوش آمدید۔ ارائیں بنوں برادری کی تازہ ترین خبروں، کہانیوں اور اعلانات سے باخبر رہیں۔',
-pageBodyHistory:'ارائیں بنوں ارائیں برادری کو عالمی سطح پر متحد کرنے کے وژن کے ساتھ قائم کی گئی۔ معمولی آغاز سے ارائیں بنوں کمیونٹی بااختیاریت اور ترقی کے لیے ایک عالمی تحریک بن گئی ہے۔',
-pageBodyDocs:'ارائیں بنوں کی سرکاری دستاویزات، پالیسیاں اور رہنما اصول۔ تمام وسائل اراکین اور عوام کے لیے دستیاب ہیں۔',
-pageBodyEnv:'ارائیں بنوں ماحولیاتی تحفظ اور پائیداری کے لیے پرعزم ہے۔ ہم پودے لگانے، صاف پانی کے اقدامات اور ماحول دوست پروگراموں کو فروغ دیتے ہیں۔',
-pageBodyGallery:'دنیا بھر کے شہروں میں ارائیں بنوں تقریبات، کمیونٹی اجتماعات اور سنگ میل سے تصاویر اور یادیں دیکھیں۔',
-pageBodyDept:'ارائیں بنوں متعدد محکموں کے ذریعے کام کرتی ہے جن میں تعلیم، بہبود، نوجوانوں کے امور، خواتین کی بااختیاریت اور بین الاقوامی تعلقات شامل ہیں۔',
-donateToAraainBannu:'ارائیں بنوں کو عطیہ دیں',
-donSub:'آپ کا عطیہ براہ راست ارائیں برادری کی مدد کرتا ہے۔',
-tabBank:'بینک ٹرانسفر',
-tabEasypaisa:'Easypaisa',
-tabJazzcash:'JazzCash',
-tabInternational:'بین الاقوامی',
-bankName:'بینک کا نام',
-accountTitle:'اکاؤنٹ کا عنوان',
-accountNo:'اکاؤنٹ نمبر',
-branchCode:'برانچ کوڈ',
-IBAN:'IBAN',
-suggestedAmounts:'تجویز کردہ عطیہ:',
-custom:'اپنی رقم',
-bankNote:'منتقلی کے بعد رسید ای میل یا واٹس ایپ پر بھیجیں۔',
-  donFormTitle:'اپنا عطیہ درج کریں',
-  donFormSub:'رقم منتقل کرنے کے بعد اپنی تفصیلات درج کریں تاکہ ہم تصدیق کر سکیں۔',
-  donorName:'پورا نام',
-  donorPhone:'فون / واٹس ایپ',
-  donorEmail:'ای میل (اختیاری)',
-  donAmount:'عطیہ کی رقم',
-  donMethod:'ادائیگی کا طریقہ',
-  donTxID:'ٹرانزیکشن آئی ڈی / حوالہ نمبر',
-  donTxIDPh:'مثال: TXN12345678',
-  donNote:'اضافی نوٹ (اختیاری)',
-  donNotePh:'ارائیں بنوں ٹیم کے لیے کوئی پیغام',
-  donProof:'ادائیگی کا اسکرین شاٹ (اختیاری)',
-  donSubmitBtn:'عطیہ ریکارڈ جمع کریں',
-  donSubmitting:'جمع ہو رہا ہے…',
-  donSuccess:'شکریہ! آپ کا عطیہ ریکارڈ موصول ہو گیا۔ ہم جلد تصدیق کر کے رابطہ کریں گے۔',
-easypaisaNote:'Easypaisa ایپ ← پیسے بھیجیں ← موبائل اکاؤنٹ۔ منتقلی کے بعد اسکرین شاٹ بھیجیں۔',
-jazzcashNote:'JazzCash ایپ ← پیسے بھیجیں ← موبائل پر۔ منتقلی کے بعد اسکرین شاٹ بھیجیں۔',
-intNote:'بین الاقوامی ٹرانسفر کے لیے 3-5 کاروباری دن لگتے ہیں۔ حوالہ نمبر کے ساتھ ای میل کریں۔',
-service:'سروس',
-mobileNo:'موبائل نمبر',
-memAppTitle:'رکنیت کی درخواست — ارائیں بنوں',
-memAppSub:'ہمارے ساتھ شامل ہوں! ارائیں بنوں کے رکن بننے کے لیے نیچے فارم بھریں۔',
-memInstrTitle:'فارم ہدایات',
-memInstr1:'تمام ضروری خانوں میں درست اور مکمل معلومات فراہم کریں۔',
-memInstr2:'آپ کا واٹس ایپ نمبر فعال ہونا چاہیے۔',
-memInstr3:'شناختی کارڈ اور ای میل اختیاری ہیں لیکن درست تفصیلات تجویز کی جاتی ہیں۔',
-memInstr4:'ہماری ٹیم جائزے کے بعد آپ سے رابطہ کرے گی۔',
-memInstr5:'ادھوری معلومات رد کا سبب بن سکتی ہے۔',
-memNote:'مل کر ترقی کریں — ارائیں بنوں',
-memPersonal:'ذاتی معلومات',
-memContact:'رابطہ اور رہائشی',
-memProfessional:'پیشہ ورانہ معلومات',
-memAddress:'پروفائل تصویر اور پتہ',
-memTermsTitle:'شرائط و ضوابط',
-memTerm1:'فراہم کردہ معلومات درست اور مکمل ہیں۔',
-memTerm2:'ارائیں بنوں کسی بھی درخواست کو قبول یا رد کرنے کا حق رکھتی ہے۔',
-memTerm3:'رکنیت سیاسی یا غیر قانونی مقاصد کے لیے استعمال نہیں ہوگی۔',
-memConsent:'میں رکنیت کی شرائط سے متفق ہوں',
-submitApp:'درخواست جمع کرائیں',
-submitting:'بھیجا جا رہا ہے…',
-appSuccess:'آپ کی درخواست کامیابی سے جمع ہو گئی! ہماری ٹیم جلد آپ سے رابطہ کرے گی۔',
-msgSuccess:'پیغام کامیابی سے بھیج دیا گیا!',
-sending:'بھیجا جا رہا ہے…',
-fFullName:'پورا نام *',
-fFatherName:'والد کا نام *',
-fGender:'جنس *',
-fMemberType:'رکنیت کی قسم *',
-fCnic:'شناختی کارڈ نمبر',
-fDob:'تاریخ پیدائش *',
-fEmailF:'ای میل *',
-fWhatsapp:'واٹس ایپ نمبر *',
-fResidential:'رہائشی حیثیت *',
-fAffiliated:'کسی تنظیم سے وابستہ؟ *',
-fEducation:'تعلیمی قابلیت *',
-fWork:'کام کی معلومات *',
-fReason:'آپ ارائیں بنوں میں کیوں شامل ہونا چاہتے ہیں؟',
-fPhoto:'پروفائل تصویر',
-fStreet:'گلی کا پتہ *',
-fCity:'شہر *',
-fState:'صوبہ *',
-fCountry:'ملک *',
-selectOpt:'آپشن منتخب کریں',
-gFemale:'خاتون',
-gMale:'مرد',
-gOther:'دیگر',
-mExec:'ایگزیکٹو رکن',
-mGeneral:'عام رکن',
-mYouth:'نوجوان رکن',
-mAssoc:'ایسوسی ایٹ رکن',
-rResident:'مقیم پاکستانی',
-rOverseas:'بیرون ملک پاکستانی',
-yes:'ہاں',
-no:'نہیں',
-eMatric:'میٹرک',
-eInter:'انٹرمیڈیٹ',
-eGrad:'گریجویٹ',
-ePG:'پوسٹ گریجویٹ',
-eOther:'دیگر',
-wStudent:'طالب علم',
-wJob:'ملازم',
-wGov:'سرکاری ملازم',
-wBiz:'کاروباری',
-wFree:'فری لانسر',
-phFullName:'محمد علی ارائیں',
-phFatherName:'محمد اکرم ارائیں',
-phCnic:'XXXXX-XXXXXXX-X',
-phWhatsapp:'+92XXXXXXXXXX',
-phStreet:'مکان نمبر، گلی، علاقہ',
-phCity:'بنوں',
-phState:'خیبر پختونخوا',
-phReason:'اپنی وجہ بیان کریں…',
-cPakistan:'پاکستان',
-cUSA:'امریکہ',
-cUK:'برطانیہ',
-cCanada:'کینیڈا',
-cAustralia:'آسٹریلیا',
-cUAE:'متحدہ عرب امارات',
-cSaudi:'سعودی عرب',
-cGermany:'جرمنی',
-cFrance:'فرانس',
-cNetherlands:'نیدرلینڈز',
-cOther:'دیگر',  chairmanName:'طاہر میر',
-  chairmanQuote:'اتحاد، بااختیاریت، اور ترقی — ارائیں بنوں کے تین ستون۔',
+// ── Keys that are never translated (brands, formats, numbers) ─
+export const NO_TRANSLATE = new Set(['IBAN', 'contactEmailDefault', 'contactPhoneDefault', 'langToggleLabel', 'phCnic', 'phWhatsapp', 'swiftBic', 'tabEasypaisa', 'tabJazzcash']);
 
-  contactAddressDefault:'بنوں، خیبرپختونخوا، پاکستان',
-  contactHoursDefault:'پیر – جمعہ: صبح ۸ – شام ۶',
-  contactEmailDefault:'admin@arainbannu.org',
-  contactPhoneDefault:'+92-33-9192-9922',
+// ── Cache version — tied to EN dict content hash ───────────────
+export const DICT_HASH = '780a90fb';
 
-langToggleLabel:'English',
-};
+// ── t(key, lang) — reads from persistent Urdu cache ───────────
+// The `_urCache` Map is populated by translate.js on first Urdu
+// load and reloaded from localStorage on every subsequent visit.
+// Until the cache is ready, EN[key] is returned as a fallback
+// so the page always renders something immediately.
+let _urCache = new Map();
 
-// ── t(key, lang) — synchronous, no external dependencies ─────
-// Returns the translation for `key` in the requested language.
-// Falls back to the OTHER language only as absolute last resort
-// (key truly missing from both) — never mixes languages silently.
+export function setUrCache(map) {
+  _urCache = map;
+}
+
 export function t(key, lang) {
-  const primary   = lang === 'ur' ? UR : EN;
-  const secondary = lang === 'ur' ? EN : UR;
-  if (primary[key]   !== undefined) return primary[key];
-  if (secondary[key] !== undefined) return secondary[key];
-  return key;  // bare key as last resort — never empty string
+  if (lang !== 'ur') return EN[key] !== undefined ? EN[key] : key;
+  return _urCache.get(key) || EN[key] || key;
 }

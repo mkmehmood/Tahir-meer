@@ -1,140 +1,239 @@
 // ================================================================
-//  js/translate.js  —  Online Auto-Translation
+//  js/translate.js  —  Persistent Online Translation
 //  ARAAIN BANNU
 //
-//  Translates admin-entered English content to Urdu automatically.
-//  Uses free public APIs in order of preference with fallbacks.
+//  ARCHITECTURE:
+//    • First Urdu load  → fetches all 210 UI strings via MyMemory
+//                         API, saves to localStorage permanently.
+//    • Every later load → reads from localStorage instantly (same
+//                         speed as the old static dictionary).
+//    • Admin content    → translated fresh each session and cached
+//                         in sessionStorage.
 //
-//  APIs tried in order:
-//    1. MyMemory (free, no key, 1000 words/day)
-//       https://mymemory.translated.net
-//    2. LibreTranslate public instance (free, no key)
-//       https://translate.argosopentech.com
+//  APIs (tried in order, first success wins):
+//    1. MyMemory  — https://api.mymemory.translated.net
+//    2. Argos LibreTranslate — https://translate.argosopentech.com
 //
-//  Both are free, require no API key, support en→ur, and are
-//  CORS-enabled — works directly from the browser.
+//  No API key required for either. Free tier is sufficient for a
+//  community website with localStorage caching (quota only hit
+//  once per device per cache version).
 //
-//  Caching:  sessionStorage per browser session
-//            In-memory Map for same-page re-renders (instant)
+//  localStorage key format:  ab_translations_<DICT_HASH>
+//  Old cache keys are cleaned up automatically on init.
 // ================================================================
 
-const CACHE_NS = 'ab_tr_v1_';   // namespace for sessionStorage keys
-const _mem     = new Map();      // in-memory cache — survives re-renders
+import { EN, NO_TRANSLATE, DICT_HASH, setUrCache } from './lang.js?v=1784076787';
 
-// ── Detect Urdu / Arabic script ──────────────────────────────
-const isArabicScript = t => /[\u0600-\u06FF]/.test(t);
+// ── Storage keys ──────────────────────────────────────────────
+const LS_KEY  = `ab_translations_${DICT_HASH}`;
+const SS_PREFIX = 'ab_sess_tr_';        // sessionStorage for content
 
-// ── sessionStorage helpers ────────────────────────────────────
-function _read(text) {
-  if (_mem.has(text)) return _mem.get(text);
+// ── Detect Arabic / Urdu script ──────────────────────────────
+const isArabic = t => /[\u0600-\u06FF]/.test(t);
+const isBlank  = t => !t || t.trim().length < 2;
+
+// ── Persistent cache (localStorage) ──────────────────────────
+let _persistent = {};     // { key: urduText }
+let _loaded     = false;
+
+function _loadPersistent() {
+  if (_loaded) return;
+  _loaded = true;
   try {
-    const key = CACHE_NS + text.trim().slice(0, 80);
-    const val = sessionStorage.getItem(key);
-    if (val) { _mem.set(text, val); return val; }
+    // Clean up stale cache keys from old versions
+    for (const k of Object.keys(localStorage)) {
+      if (k.startsWith('ab_translations_') && k !== LS_KEY) {
+        localStorage.removeItem(k);
+      }
+    }
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) _persistent = JSON.parse(raw);
+  } catch (_) {}
+}
+
+function _savePersistent() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(_persistent)); }
+  catch (_) {}
+}
+
+// ── Session cache (sessionStorage — for admin content) ────────
+const _session = new Map();
+
+function _sessRead(text) {
+  if (_session.has(text)) return _session.get(text);
+  try {
+    const v = sessionStorage.getItem(SS_PREFIX + text.slice(0, 80));
+    if (v) { _session.set(text, v); return v; }
   } catch (_) {}
   return null;
 }
 
-function _write(text, translated) {
-  _mem.set(text, translated);
-  try {
-    sessionStorage.setItem(CACHE_NS + text.trim().slice(0, 80), translated);
-  } catch (_) {}
+function _sessWrite(text, translated) {
+  _session.set(text, translated);
+  try { sessionStorage.setItem(SS_PREFIX + text.slice(0, 80), translated); }
+  catch (_) {}
 }
 
-// ── API 1: MyMemory ───────────────────────────────────────────
-async function _myMemory(text) {
+// ── Single-string API translation ─────────────────────────────
+async function _apiMyMemory(text) {
   const url = 'https://api.mymemory.translated.net/get'
     + `?q=${encodeURIComponent(text)}`
     + '&langpair=en%7Cur'
     + '&de=admin%40arainbannu.org';
-  const res  = await fetch(url, { signal: AbortSignal.timeout(7000) });
-  const data = await res.json();
-  const out  = data?.responseData?.translatedText;
-  if (data?.responseStatus === 200 && out && isArabicScript(out)) return out;
-  return null;
+  const r = await fetch(url, { signal: AbortSignal.timeout(4000) });
+  const d = await r.json();
+  const t = d?.responseData?.translatedText;
+  return (d?.responseStatus === 200 && t && isArabic(t)) ? t : null;
 }
 
-// ── API 2: LibreTranslate (Argos public instance) ─────────────
-async function _libreTranslate(text) {
-  const res = await fetch('https://translate.argosopentech.com/translate', {
+async function _apiLibre(text) {
+  const r = await fetch('https://translate.argosopentech.com/translate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ q: text, source: 'en', target: 'ur' }),
-    signal: AbortSignal.timeout(8000),
+    body: JSON.stringify({ q: text, source: 'en', target: 'ur', format: 'text' }),
+    signal: AbortSignal.timeout(5000),
   });
-  const data = await res.json();
-  const out  = data?.translatedText;
-  if (out && isArabicScript(out)) return out;
-  return null;
+  const d = await r.json();
+  const t = d?.translatedText;
+  return (t && isArabic(t)) ? t : null;
 }
 
-// ── Core translate function ───────────────────────────────────
+async function _translate(text) {
+  if (isBlank(text) || isArabic(text)) return text;
+  for (const fn of [_apiMyMemory, _apiLibre]) {
+    try { const r = await fn(text); if (r) return r; }
+    catch (_) { /* try next */ }
+  }
+  return text;  // graceful fallback
+}
+
+// ── Concurrency limiter (avoid hammering the API) ─────────────
+async function _pool(tasks, concurrency = 8) {
+  const results = new Array(tasks.length);
+  let i = 0;
+  async function worker() {
+    while (i < tasks.length) {
+      const idx = i++;
+      results[idx] = await tasks[idx]().catch(() => null);
+    }
+  }
+  await Promise.all(Array.from({ length: concurrency }, worker));
+  return results;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PUBLIC API
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * initTranslations()
+ *
+ * Call once at boot (before renderAll).
+ * - Loads the localStorage cache into memory
+ * - Passes it to lang.js so t(key,'ur') resolves instantly
+ * - Returns true  if cache is COMPLETE (all keys translated)
+ * - Returns false if this is a cold start (needs prefetch)
+ */
+export function initTranslations() {
+  _loadPersistent();
+  const map = new Map(Object.entries(_persistent));
+  setUrCache(map);
+
+  // Check if every translatable EN key is in the cache
+  const missing = Object.keys(EN).filter(k =>
+    !NO_TRANSLATE.has(k) && !_persistent[k]
+  );
+  return missing.length === 0;
+}
+
+/**
+ * prefetchAllTranslations(onProgress)
+ *
+ * Translates every EN string that isn't in the cache yet.
+ * Calls onProgress(done, total) as strings complete.
+ * Saves to localStorage as each batch finishes.
+ *
+ * @param {Function} onProgress   (done: number, total: number) => void
+ * @returns {Promise<void>}
+ */
+export async function prefetchAllTranslations(onProgress) {
+  _loadPersistent();
+
+  const todo = Object.entries(EN).filter(
+    ([k, v]) => !NO_TRANSLATE.has(k) && !_persistent[k] && v && v.trim().length > 1
+  );
+
+  if (!todo.length) return;
+
+  let done = 0;
+  const total = todo.length;
+  if (onProgress) onProgress(0, total);
+
+  const tasks = todo.map(([key, enText]) => async () => {
+    const urdu = await _translate(enText);
+    if (urdu && urdu !== enText) {
+      _persistent[key] = urdu;
+    }
+    done++;
+    if (onProgress) onProgress(done, total);
+    // Save to localStorage every 20 completions
+    if (done % 20 === 0 || done === total) _savePersistent();
+    return [key, urdu];
+  });
+
+  await _pool(tasks, 8);
+
+  // Final save + push updated cache to lang.js
+  _savePersistent();
+  setUrCache(new Map(Object.entries(_persistent)));
+}
+
 /**
  * translateToUrdu(text)
  *
- * Translates a string from English to Urdu.
- * Returns original text if already Urdu, empty, or all APIs fail.
+ * Translates a single arbitrary string (admin content).
+ * Uses sessionStorage cache — not localStorage (content changes).
  *
  * @param  {string} text
  * @returns {Promise<string>}
  */
 export async function translateToUrdu(text) {
-  if (!text || text.trim().length < 2) return text;
-  if (isArabicScript(text)) return text;         // already Urdu
-
-  const cached = _read(text);
+  if (isBlank(text) || isArabic(text)) return text;
+  const cached = _sessRead(text);
   if (cached) return cached;
-
-  // Try APIs in sequence
-  for (const fn of [_myMemory, _libreTranslate]) {
-    try {
-      const result = await fn(text);
-      if (result) {
-        _write(text, result);
-        return result;
-      }
-    } catch (_) {
-      // Try next API
-    }
-  }
-
-  console.warn('[ARAAIN BANNU Translate] All APIs failed for:', text.slice(0, 40));
-  return text;  // graceful fallback — show original English
+  const result = await _translate(text);
+  if (result && result !== text) _sessWrite(text, result);
+  return result;
 }
 
-// ── Batch translate ───────────────────────────────────────────
 /**
  * translateAll(map)
  *
- * Translates multiple strings in parallel.
+ * Translates multiple admin-content strings in parallel.
  * @param  {Object} map  { id: 'English text', ... }
  * @returns {Promise<Object>} { id: 'Urdu text', ... }
  */
 export async function translateAll(map) {
-  const entries = Object.entries(map).filter(([, v]) => v && !isArabicScript(v));
+  const entries = Object.entries(map).filter(([, v]) => v && !isArabic(v));
   if (!entries.length) return map;
-
-  const results = await Promise.allSettled(
-    entries.map(([, text]) => translateToUrdu(text))
-  );
-
+  const tasks = entries.map(([, text]) => () => translateToUrdu(text));
+  const results = await _pool(tasks, 8);
   const out = { ...map };
   entries.forEach(([key], i) => {
-    if (results[i].status === 'fulfilled') out[key] = results[i].value;
+    if (results[i] && results[i] !== map[key]) out[key] = results[i];
   });
   return out;
 }
 
-// ── DOM helper ────────────────────────────────────────────────
 /**
- * translateElement(id, text, lang)
- * Translates text and updates element in-place.
+ * clearCache()
+ * Removes the persistent translation cache so it will be rebuilt
+ * on the next Urdu page load. Call from admin panel if needed.
  */
-export async function translateElement(id, text, lang) {
-  if (lang !== 'ur' || !text || isArabicScript(text)) return;
-  const el = document.getElementById(id);
-  if (!el) return;
-  const urdu = await translateToUrdu(text);
-  if (urdu && urdu !== text) el.textContent = urdu;
+export function clearCache() {
+  try { localStorage.removeItem(LS_KEY); }
+  catch (_) {}
+  _persistent = {};
+  _loaded = false;
+  setUrCache(new Map());
 }
