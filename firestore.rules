@@ -15,7 +15,27 @@ service cloud.firestore {
     // Anyone can CREATE (public form, no login)
     // Only admin can READ + update the status field
     match /registrations/{document} {
-      allow create: if true;
+      allow create: if
+        // Reject any submission whose photo (if present) is larger than
+        // ~700KB of base64 text — mirrors the client-side compression
+        // cap in app.js/firebase.js, enforced here too so a modified
+        // or malicious client can't bypass it.
+        (!('photoData' in request.resource.data)
+          || request.resource.data.photoData.size() <= 700000);
+      allow read:   if request.auth != null
+                    && request.auth.uid == "jYPaIx2KerQJPZNU3w19XxoQuYt1";
+      allow update: if request.auth != null
+                    && request.auth.uid == "jYPaIx2KerQJPZNU3w19XxoQuYt1"
+                    && request.resource.data.diff(resource.data)
+                       .affectedKeys().hasOnly(['status']);
+      allow delete: if false;
+    }
+
+    // ── donations — donor confirmation records ──────────────────────
+    match /donations/{document} {
+      allow create: if
+        (!('photoData' in request.resource.data)
+          || request.resource.data.photoData.size() <= 700000);
       allow read:   if request.auth != null
                     && request.auth.uid == "jYPaIx2KerQJPZNU3w19XxoQuYt1";
       allow update: if request.auth != null

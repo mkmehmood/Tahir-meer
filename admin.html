@@ -6,7 +6,7 @@
 <title>ARAAIN BANNU Admin Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="styles.css?v=1783561847"/>
+<link rel="stylesheet" href="styles.css?v=1784105824"/>
 <link rel="icon" href="icons/favicon.ico" sizes="any"/>
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png"/>
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png"/>
@@ -17,6 +17,71 @@
 <body class="admin-body">
 
 <!-- ADMIN APP — entire admin UI, hidden until Firebase login succeeds -->
+<div id="admin-login-screen" style="
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,#9CD5FF 0%,#B8E1FF 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;font-family:'Inter',sans-serif;">
+
+  <div id="fb-login-card" style="
+    background:#FFFFFF;border:1px solid rgba(99,102,241,.15);border-radius:16px;
+    padding:40px 36px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(15,23,42,.18);">
+
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="
+        display:inline-flex;align-items:center;justify-content:center;
+        width:56px;height:56px;background:linear-gradient(135deg,#6D28D9,#A855F7);
+        border-radius:14px;margin-bottom:14px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" width="26" height="26"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h2 style="color:#0F172A;font-family:'Inter',sans-serif;font-weight:800;font-size:22px;margin:0 0 4px">Admin Login</h2>
+      <p style="color:#475569;font-size:13px;margin:0">ARAAIN BANNU — Secure Dashboard</p>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <label style="display:block;font-size:12px;color:#475569;margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase">Email Address</label>
+      <input id="fb-email" type="email" placeholder="admin@example.com" autocomplete="username"
+        style="width:100%;box-sizing:border-box;background:#9CD5FF;border:1.5px solid rgba(99,102,241,.2);
+               border-radius:8px;padding:11px 14px;color:#0F172A;font-size:14px;outline:none;
+               font-family:'Inter',sans-serif;transition:border-color .2s"
+        onfocus="this.style.borderColor='#6D28D9'" onblur="this.style.borderColor='rgba(99,102,241,.2)'"/>
+    </div>
+
+    <div style="margin-bottom:22px">
+      <label style="display:block;font-size:12px;color:#475569;margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase">Password</label>
+      <input id="fb-password" type="password" placeholder="••••••••" autocomplete="current-password"
+        style="width:100%;box-sizing:border-box;background:#9CD5FF;border:1.5px solid rgba(99,102,241,.2);
+               border-radius:8px;padding:11px 14px;color:#0F172A;font-size:14px;outline:none;
+               font-family:'Inter',sans-serif;transition:border-color .2s"
+        onfocus="this.style.borderColor='#6D28D9'" onblur="this.style.borderColor='rgba(99,102,241,.2)'"
+        onkeydown="if(event.key==='Enter') fbLogin()"/>
+    </div>
+
+    <button id="fb-login-btn" onclick="fbLogin()" style="
+      width:100%;background:linear-gradient(135deg,#6D28D9,#A855F7);
+      border:none;border-radius:8px;padding:13px;color:#fff;font-size:15px;
+      font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
+      transition:opacity .2s;letter-spacing:.3px">
+      Sign In
+    </button>
+
+    <div id="fb-login-error" style="
+      display:none;margin-top:14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.25);
+      border-radius:8px;padding:10px 14px;color:#dc2626;font-size:13px;text-align:center">
+    </div>
+
+    <div id="fb-login-checking" style="
+      margin-top:14px;text-align:center;color:#475569;font-size:13px;display:flex;
+      align-items:center;justify-content:center;gap:8px">
+      <span style="width:14px;height:14px;border:2px solid rgba(109,40,217,.25);
+        border-top-color:#6D28D9;border-radius:50%;display:inline-block;
+        animation:adminSpin .7s linear infinite"></span>
+      Checking session…
+    </div>
+  </div>
+</div>
+<style>@keyframes adminSpin{to{transform:rotate(360deg)}}</style>
+
 <div id="admin-app" style="display:none">
 
 <div class="admin-topbar">
@@ -303,70 +368,7 @@ Reset
      The entire admin app (topbar + sidebar + every panel) is
      hidden behind this until the correct admin account signs in.
 ════════════════════════════════════════════════════════════ -->
-<div id="admin-login-screen" style="
-  position:fixed;inset:0;z-index:9999;
-  background:linear-gradient(135deg,#9CD5FF 0%,#B8E1FF 100%);
-  display:flex;align-items:center;justify-content:center;
-  padding:24px;font-family:'Inter',sans-serif;">
 
-  <div id="fb-login-card" style="
-    background:#FFFFFF;border:1px solid rgba(99,102,241,.15);border-radius:16px;
-    padding:40px 36px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(15,23,42,.18);">
-
-    <div style="text-align:center;margin-bottom:28px">
-      <div style="
-        display:inline-flex;align-items:center;justify-content:center;
-        width:56px;height:56px;background:linear-gradient(135deg,#6D28D9,#A855F7);
-        border-radius:14px;margin-bottom:14px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" width="26" height="26"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      </div>
-      <h2 style="color:#0F172A;font-family:'Inter',sans-serif;font-weight:800;font-size:22px;margin:0 0 4px">Admin Login</h2>
-      <p style="color:#475569;font-size:13px;margin:0">ARAAIN BANNU — Secure Dashboard</p>
-    </div>
-
-    <div style="margin-bottom:16px">
-      <label style="display:block;font-size:12px;color:#475569;margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase">Email Address</label>
-      <input id="fb-email" type="email" placeholder="admin@example.com" autocomplete="username"
-        style="width:100%;box-sizing:border-box;background:#9CD5FF;border:1.5px solid rgba(99,102,241,.2);
-               border-radius:8px;padding:11px 14px;color:#0F172A;font-size:14px;outline:none;
-               font-family:'Inter',sans-serif;transition:border-color .2s"
-        onfocus="this.style.borderColor='#6D28D9'" onblur="this.style.borderColor='rgba(99,102,241,.2)'"/>
-    </div>
-
-    <div style="margin-bottom:22px">
-      <label style="display:block;font-size:12px;color:#475569;margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase">Password</label>
-      <input id="fb-password" type="password" placeholder="••••••••" autocomplete="current-password"
-        style="width:100%;box-sizing:border-box;background:#9CD5FF;border:1.5px solid rgba(99,102,241,.2);
-               border-radius:8px;padding:11px 14px;color:#0F172A;font-size:14px;outline:none;
-               font-family:'Inter',sans-serif;transition:border-color .2s"
-        onfocus="this.style.borderColor='#6D28D9'" onblur="this.style.borderColor='rgba(99,102,241,.2)'"
-        onkeydown="if(event.key==='Enter') fbLogin()"/>
-    </div>
-
-    <button id="fb-login-btn" onclick="fbLogin()" style="
-      width:100%;background:linear-gradient(135deg,#6D28D9,#A855F7);
-      border:none;border-radius:8px;padding:13px;color:#fff;font-size:15px;
-      font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
-      transition:opacity .2s;letter-spacing:.3px">
-      Sign In
-    </button>
-
-    <div id="fb-login-error" style="
-      display:none;margin-top:14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.25);
-      border-radius:8px;padding:10px 14px;color:#dc2626;font-size:13px;text-align:center">
-    </div>
-
-    <div id="fb-login-checking" style="
-      margin-top:14px;text-align:center;color:#475569;font-size:13px;display:flex;
-      align-items:center;justify-content:center;gap:8px">
-      <span style="width:14px;height:14px;border:2px solid rgba(109,40,217,.25);
-        border-top-color:#6D28D9;border-radius:50%;display:inline-block;
-        animation:adminSpin .7s linear infinite"></span>
-      Checking session…
-    </div>
-  </div>
-</div>
-<style>@keyframes adminSpin{to{transform:rotate(360deg)}}</style>
 
 <div id="panel-submissions" class="admin-panel">
 <p class="ap-title">Membership Submissions</p>
@@ -532,8 +534,8 @@ Reset
 <!-- /admin-app -->
 </div>
 <script type="module">
-import { initDB, getAllSettings, setSettings, getPrograms, upsertProgram, deleteProgram, getLeaders, upsertLeader, deleteLeader, getEvents, upsertEvent, deleteEvent, getPages, upsertPage, getGallery, addGalleryItem, deleteGalleryItem, updateGalleryCaption, getSubmissions, updateSubmissionStatus, deleteSubmission, countSubmissions, countNew, getMessages, addDonation, getDonations, updateDonationStatus, deleteDonation, countDonations, countUnverified, exportBlob, resetDB } from './js/db.js?v=1783561847';
-import { pushSettings, pushPrograms, pushLeaders, pushEvents, pushPages, pushGallery, fetchAllSiteContent } from './js/cloud.js?v=1783561847';
+import { initDB, getAllSettings, setSettings, getPrograms, upsertProgram, deleteProgram, getLeaders, upsertLeader, deleteLeader, getEvents, upsertEvent, deleteEvent, getPages, upsertPage, getGallery, addGalleryItem, deleteGalleryItem, updateGalleryCaption, getSubmissions, updateSubmissionStatus, deleteSubmission, countSubmissions, countNew, getMessages, addDonation, getDonations, updateDonationStatus, deleteDonation, countDonations, countUnverified, exportBlob, resetDB } from './js/db.js?v=1784105824';
+import { pushSettings, pushPrograms, pushLeaders, pushEvents, pushPages, pushGallery, fetchAllSiteContent } from './js/cloud.js?v=1784105824';
 
 // ── Cloud sync helper: push a collection array after every local write ────────
 async function syncToCloud() {
@@ -552,59 +554,68 @@ async function syncToCloud() {
   }
 }
 let S = {};
+let _bootedOnce = false;
+
 async function boot() {
-  await initDB();
-
-  // ── Pull latest content FROM Firestore into local SQLite ──────────
-  // This ensures admin always edits the live cloud state, not stale local data
+  // ── Phase 1: Show the admin UI INSTANTLY from whatever is already
+  //    in local SQLite (fast, no network wait). This guarantees the
+  //    panels are never left blank after login, even if Firestore
+  //    is slow, unreachable, or the cloud sync below fails entirely.
   try {
-    showToast('Syncing from cloud…', 'info');
-    const cloud = await fetchAllSiteContent();
-
-    // Settings
-    if (cloud.settings && Object.keys(cloud.settings).length) {
-      await setSettings(cloud.settings);
-    }
-
-    // Programs
-    if (cloud.programs && cloud.programs.length) {
-      // Replace local programs with cloud versions
-      for (const p of getPrograms()) await deleteProgram(p.id).catch(() => {});
-      for (const p of cloud.programs) await upsertProgram(p).catch(() => {});
-    }
-
-    // Leaders
-    if (cloud.leaders && cloud.leaders.length) {
-      for (const l of getLeaders()) await deleteLeader(l.id).catch(() => {});
-      for (const l of cloud.leaders) await upsertLeader(l).catch(() => {});
-    }
-
-    // Events
-    if (cloud.events && cloud.events.length) {
-      for (const e of getEvents()) await deleteEvent(e.id).catch(() => {});
-      for (const e of cloud.events) await upsertEvent(e).catch(() => {});
-    }
-
-    // Pages — merge body/label/published from cloud, keep SQLite structure
-    if (cloud.pages && cloud.pages.length) {
-      for (const cp of cloud.pages) {
-        const local = getPages().find(p => p.slug === cp.slug);
-        if (local) await upsertPage({ ...local, ...cp }).catch(() => {});
-      }
-    }
-
-    // Gallery
-    if (cloud.gallery && cloud.gallery.length) {
-      for (const g of getGallery()) await deleteGalleryItem(g.id).catch(() => {});
-      for (const g of cloud.gallery) await addGalleryItem(g).catch(() => {});
-    }
-
-    showToast('Cloud sync complete ✓', 'success');
+    await initDB();
   } catch (err) {
-    console.warn('[Admin] Firestore pull failed, using local data:', err.message);
-    showToast('Offline — using local data', 'warn');
+    console.error('[Admin] initDB failed:', err);
+    showToast('Local database failed to load — please refresh', 'error');
   }
 
+  // Wrapped in try/finally: even if a query throws (e.g. a schema
+  // mismatch from an old cached database), bindSidebar() and basic
+  // navigation ALWAYS get wired up — the admin app can never be left
+  // with an unresponsive sidebar because one panel's data failed.
+  try {
+    S = getAllSettings();
+    populateAll();
+    renderProgramsEd();
+    renderLeadersEd();
+    renderEventsEd();
+    renderPagesEd();
+    renderGalleryAdmin();
+    renderSubs();
+    renderMsgs();
+    renderDash();
+  } catch (err) {
+    console.error('[Admin] Panel population failed:', err);
+    showToast('Some content failed to load — try Reset if this persists', 'error');
+  } finally {
+    bindSidebar();
+  }
+
+  // ── Phase 2: Sync FROM Firestore in the background, hard-capped
+  //    at 15 seconds so a slow/unreachable connection can never leave
+  //    the admin stuck on "Syncing…" — it just keeps the local/last-
+  //    known content and lets the admin keep working regardless.
+  //    Only runs on the FIRST login of a session — re-logins after
+  //    logout reuse the already-synced local data instantly.
+  if (_bootedOnce) return;
+  _bootedOnce = true;
+
+  showToast('Syncing from cloud…', 'info');
+  const MAX_WAIT_MS = 15000;
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Cloud sync timed out')), MAX_WAIT_MS)
+  );
+
+  try {
+    const cloud = await Promise.race([fetchAllSiteContent(), timeoutPromise]);
+    await _applyCloudSync(cloud);
+    showToast('Cloud sync complete ✓', 'success');
+  } catch (err) {
+    console.warn('[Admin] Firestore sync failed or timed out:', err.message);
+    showToast('Offline — using local data', 'warn');
+    return; // local data (already rendered above) remains authoritative
+  }
+
+  // Re-render panels now that local SQLite reflects the latest cloud data
   S = getAllSettings();
   populateAll();
   renderProgramsEd();
@@ -612,10 +623,37 @@ async function boot() {
   renderEventsEd();
   renderPagesEd();
   renderGalleryAdmin();
-  renderSubs();
-  renderMsgs();
   renderDash();
-  bindSidebar();
+}
+
+// ── Apply a Firestore snapshot into local SQLite ──────────────────────────
+// Runs as a background sync, never blocks the initial panel render.
+async function _applyCloudSync(cloud) {
+  if (cloud.settings && Object.keys(cloud.settings).length) {
+    await setSettings(cloud.settings).catch(() => {});
+  }
+  if (cloud.programs && cloud.programs.length) {
+    for (const p of getPrograms()) await deleteProgram(p.id).catch(() => {});
+    for (const p of cloud.programs) await upsertProgram(p).catch(() => {});
+  }
+  if (cloud.leaders && cloud.leaders.length) {
+    for (const l of getLeaders()) await deleteLeader(l.id).catch(() => {});
+    for (const l of cloud.leaders) await upsertLeader(l).catch(() => {});
+  }
+  if (cloud.events && cloud.events.length) {
+    for (const e of getEvents()) await deleteEvent(e.id).catch(() => {});
+    for (const e of cloud.events) await upsertEvent(e).catch(() => {});
+  }
+  if (cloud.pages && cloud.pages.length) {
+    for (const cp of cloud.pages) {
+      const local = getPages().find(p => p.slug === cp.slug);
+      if (local) await upsertPage({ ...local, ...cp }).catch(() => {});
+    }
+  }
+  if (cloud.gallery && cloud.gallery.length) {
+    for (const g of getGallery()) await deleteGalleryItem(g.id).catch(() => {});
+    for (const g of cloud.gallery) await addGalleryItem(g).catch(() => {});
+  }
 }
 
 // ── Toast notification ────────────────────────────────────────────────────────
@@ -641,7 +679,10 @@ function showToast(msg, type='info') {
   clearTimeout(toast._t);
   toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 3000);
 }
+let _sidebarBound = false;
 function bindSidebar() {
+if (_sidebarBound) return;   // avoid stacking duplicate listeners on re-login
+_sidebarBound = true;
 document.querySelectorAll('.sidebar-link').forEach(l => {
 l.addEventListener('click', () => {
 document.querySelectorAll('.sidebar-link').forEach(x => x.classList.remove('active'));
@@ -988,6 +1029,8 @@ window.addEventListener('resize', () => {
 // Firebase auth script (below) confirms the admin is logged in.
 // Exposed globally so that script can invoke it.
 window.__bootAdminApp = boot;
+// Exposed so fbLogout() can force a fresh cloud re-sync on next login
+window.__resetBootState = () => { _bootedOnce = false; };
 </script>
 </html>
 
@@ -1028,6 +1071,8 @@ const db    = getFirestore(app);
 
 let allDocs     = [];   // full snapshot cache
 let unsubscribe = null; // onSnapshot unsubscriber
+let donDocs     = [];   // donations snapshot cache
+let donUnsub    = null; // donations onSnapshot unsubscriber
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 function showError(msg) {
@@ -1283,21 +1328,26 @@ async function showDashboard(user) {
   const topbarEmail = document.getElementById('topbarAdminEmail');
   if (topbarEmail) topbarEmail.textContent = user.email;
 
-  // Boot the admin panel on first login.
-  // On re-login after logout, just re-render the dashboard panel
-  // (SQLite is already loaded; we only need fresh Firestore listeners).
-  if (!window.__adminBooted && typeof window.__bootAdminApp === 'function') {
-    window.__adminBooted = true;
-    await window.__bootAdminApp();
-  } else if (window.__adminBooted === false && window.__bootAdminApp) {
-    // Re-login after logout: re-run boot() to resync cloud data
-    window.__adminBooted = true;
-    await window.__bootAdminApp();
+  // Boot the admin panel — always call this; boot() itself is idempotent
+  // (it only re-syncs from cloud once per session, see _bootedOnce inside it)
+  // and is now guaranteed to populate the panels from local data instantly,
+  // even if the Firestore cloud sync fails or times out.
+  try {
+    if (typeof window.__bootAdminApp === 'function') {
+      await window.__bootAdminApp();
+    }
+  } catch (err) {
+    console.error('[Admin] boot() failed unexpectedly:', err);
+    showToast('Something went wrong loading the dashboard — please refresh', 'error');
   }
 
-  await initAdminDoc(user);   // create/update /admins/{uid} doc in Firestore
-  startRealtimeListener();
-  startDonListener();
+  try {
+    await initAdminDoc(user);
+    startRealtimeListener();
+    startDonListener();
+  } catch (err) {
+    console.warn('[Admin] Firestore listeners failed to start:', err.message);
+  }
 }
 
 function showLogin() {
@@ -1327,10 +1377,16 @@ function showLogin() {
 }
 
 // ── Auth state observer (handles page refresh / existing session) ──────────
+let _isLoggingOut = false;
 onAuthStateChanged(auth, user => {
   // First resolution (whether logged in or not) — stop showing "Checking session…"
   const checking = document.getElementById('fb-login-checking');
   if (checking) checking.style.display = 'none';
+
+  // Guard: if fbLogout() is actively tearing down the session, ignore any
+  // stale/delayed auth-state event so it can't race and re-show the
+  // dashboard right after the admin explicitly logged out.
+  if (_isLoggingOut) return;
 
   if (user && user.uid === ADMIN_UID) {
     showDashboard(user);
@@ -1381,6 +1437,8 @@ window.fbLogin = async function() {
 
 // ── Logout ────────────────────────────────────────────────────────────────────
 window.fbLogout = async function() {
+  _isLoggingOut = true;   // suppress any racing onAuthStateChanged event
+
   // Stop all Firestore listeners before signing out
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
   if (typeof donUnsub === 'function') { donUnsub(); donUnsub = null; }
@@ -1391,7 +1449,7 @@ window.fbLogout = async function() {
 
   // Manually call showLogin() — onAuthStateChanged sometimes
   // fires too late on mobile after signOut(), causing a blank screen
-  window.__adminBooted = false;
+  if (typeof window.__resetBootState === 'function') window.__resetBootState();
   showLogin();
 
   // Reset login form to clean state for re-login
@@ -1404,6 +1462,8 @@ window.fbLogout = async function() {
   if (btnEl)   btnEl.textContent = 'Sign In';
   if (btnEl)   btnEl.disabled    = false;
   if (errEl)   errEl.style.display = 'none';
+
+  _isLoggingOut = false;  // safe to process auth-state events again
 };
 
 // ── CSV Export (all fields) ───────────────────────────────────────────────────
@@ -1453,8 +1513,6 @@ window.fbExportCSV = function() {
 // ══════════════════════════════════════════════════════════════════
 //  DONATIONS — Firestore live listener + admin table
 // ══════════════════════════════════════════════════════════════════
-let donDocs  = [];
-let donUnsub = null;
 
 function startDonListener() {
   if (donUnsub) donUnsub();
