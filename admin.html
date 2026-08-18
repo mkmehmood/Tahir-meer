@@ -534,8 +534,8 @@ Reset
 <!-- /admin-app -->
 </div>
 <script type="module">
-import { initDB, getAllSettings, setSettings, getPrograms, upsertProgram, deleteProgram, getLeaders, upsertLeader, deleteLeader, getEvents, upsertEvent, deleteEvent, getPages, upsertPage, getGallery, addGalleryItem, deleteGalleryItem, updateGalleryCaption, getSubmissions, updateSubmissionStatus, deleteSubmission, countSubmissions, countNew, getMessages, addDonation, getDonations, updateDonationStatus, deleteDonation, countDonations, countUnverified, exportBlob, resetDB } from './js/db.js?v=1784105824';
-import { pushSettings, pushPrograms, pushLeaders, pushEvents, pushPages, pushGallery, fetchAllSiteContent } from './js/cloud.js?v=1784105824';
+import { initDB, getAllSettings, setSettings, getPrograms, upsertProgram, deleteProgram, getLeaders, upsertLeader, deleteLeader, getEvents, upsertEvent, deleteEvent, getPages, upsertPage, getGallery, addGalleryItem, deleteGalleryItem, updateGalleryCaption, getSubmissions, updateSubmissionStatus, deleteSubmission, countSubmissions, countNew, getMessages, addDonation, getDonations, updateDonationStatus, deleteDonation, countDonations, countUnverified, exportBlob, resetDB } from './js/db.js?v=1787053330';
+import { pushSettings, pushPrograms, pushLeaders, pushEvents, pushPages, pushGallery, fetchAllSiteContent } from './js/cloud.js?v=1787053330';
 
 // ── Cloud sync helper: push a collection array after every local write ────────
 async function syncToCloud() {
@@ -1049,7 +1049,7 @@ import { initializeApp }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, query, orderBy, onSnapshot, doc, setDoc, serverTimestamp }
+import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, setDoc, serverTimestamp }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 // ─── 🔧 REPLACE WITH YOUR FIREBASE CONFIG ─────────────────────────────────
@@ -1306,13 +1306,32 @@ function startRealtimeListener() {
 // ── Initialize Firestore admin document on every login ───────────────────────
 async function initAdminDoc(user) {
   try {
-    await setDoc(doc(db, 'admins', user.uid), {
-      email:         user.email,
-      uid:           user.uid,
-      lastLoginAt:   serverTimestamp(),   // updates on every login
-      initializedAt: serverTimestamp()    // setDoc+merge keeps original value after first write
-    }, { merge: true });
-    console.log('[ARAAIN BANNU] Firestore admin doc initialized ✓');
+    const adminRef = doc(db, 'admins', user.uid);
+    // Only set initializedAt if this document has never been written before —
+    // merge:true alone does NOT preserve a field that's included in every
+    // payload, so we must explicitly check first to keep this value fixed
+    // across every subsequent login.
+    let isFirstEver = true;
+    try {
+      const existing = await getDoc(adminRef);
+      isFirstEver = !existing.exists();
+    } catch (_) {
+      // If the read fails (e.g. offline), fall back to treating this as
+      // first-time — worst case initializedAt gets refreshed once more,
+      // which is harmless.
+    }
+
+    const payload = {
+      email:       user.email,
+      uid:         user.uid,
+      lastLoginAt: serverTimestamp(),   // always updates on every login
+    };
+    if (isFirstEver) {
+      payload.initializedAt = serverTimestamp();  // only set once, ever
+    }
+
+    await setDoc(adminRef, payload, { merge: true });
+    console.log('[ARAAIN BANNU] Firestore admin doc initialized ✓', isFirstEver ? '(first login)' : '(returning admin)');
   } catch (err) {
     // Most likely cause: "admins" collection not yet in rules — add allow below if needed
     console.warn('[ARAAIN BANNU] Could not write admin doc (check Firestore rules for /admins):', err);
