@@ -6,12 +6,12 @@
 // ================================================================
 import { initDB, getAllSettings, getPrograms, getLeaders, getEvents,
          getPages, getPage, getGallery, addSubmission, addMessage, addDonation }
-  from './db.js?v=1784105824';
-import { saveRegistrationToCloud, saveDonationToCloud } from './firebase.js?v=1784105824';
-import { fetchAllSiteContent, subscribeToSiteContent } from './cloud.js?v=1784105824';
-import { initTranslations, prefetchAllTranslations, translateAll } from './translate.js?v=1784105824';
-import { t, EN } from './lang.js?v=1784105824';
-import { iconHTML } from './icons.js?v=1784105824';
+  from './db.js?v=1787053330';
+import { saveRegistrationToCloud, saveDonationToCloud } from './firebase.js?v=1787053330';
+import { fetchAllSiteContent, subscribeToSiteContent } from './cloud.js?v=1787053330';
+import { initTranslations, prefetchAllTranslations, translateAll } from './translate.js?v=1787053330';
+import { t, EN } from './lang.js?v=1787053330';
+import { iconHTML } from './icons.js?v=1787053330';
 
 // ── State ─────────────────────────────────────────────────────
 let S    = {};   // flat settings object
@@ -564,6 +564,7 @@ function renderFooter() {
   set('footerSiteName', tv('siteName') || t('siteName', lang));
   set('footerSubName',  tv('siteSubName') || t('siteSubName', lang));
   set('footerDesc',     tv('footerDesc')  || t('footerDesc', lang));
+  set('footerSubTagline', tv('siteSubTagline'));
   set('footerCopy',     tv('footerCopy')  || t('footerCopy', lang));
   set('footerUsefulLinks', t('usefulLinks', lang));
   set('footerRecentNews',  t('recentNews', lang));

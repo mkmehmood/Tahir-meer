@@ -6,7 +6,11 @@
 // every query against them would throw. Bumping the version forces
 // a clean, fully-current schema for everyone, old data simply starts
 // fresh (this is a low-traffic admin tool, not user-facing data loss).
-const DB_NAME = 'araain_bannu_sqlite_v5';
+// v6: bumped from v5 because the 'leaders' table was missing a
+// 'photo_data' column entirely — upsertLeader() silently dropped every
+// leader photo upload (neither INSERT nor UPDATE ever wrote it). Anyone
+// with a v5 database needs a fresh schema for leader photos to persist.
+const DB_NAME = 'araain_bannu_sqlite_v6';
 const IDB_STORE = 'araain_bannu_db';
 const IDB_KEY = 'main';
 let _db = null;
@@ -65,6 +69,7 @@ name TEXT NOT NULL DEFAULT '',
 role TEXT NOT NULL DEFAULT '',
 email TEXT NOT NULL DEFAULT '',
 featured INTEGER NOT NULL DEFAULT 0,
+photo_data TEXT NOT NULL DEFAULT '',
 sort_order INTEGER NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS events (
@@ -247,7 +252,7 @@ export async function initDB() {
 if (_db) return _db;
 _SQL = await new Promise((res, rej) => {
 const sc = document.createElement('script');
-sc.src = 'js/sql-wasm.js';
+sc.src = 'js/sql-wasm.js?v=1787053330';
 sc.onload = () => initSqlJs({
   locateFile: () => 'js/sql-wasm.wasm',
   // Compile the WASM module directly from an ArrayBuffer instead of
@@ -311,9 +316,9 @@ export async function deleteProgram(id) { _db.run('DELETE FROM programs WHERE id
 export function getLeaders() { return rows(_db.exec('SELECT * FROM leaders ORDER BY sort_order')); }
 export async function upsertLeader(l) {
 if (l.id) {
-_db.run('UPDATE leaders SET initials=?,name=?,role=?,email=?,featured=?,sort_order=? WHERE id=?', [l.initials, l.name, l.role, l.email || '', l.featured ? 1 : 0, l.sort_order || 0, l.id]);
+_db.run('UPDATE leaders SET initials=?,name=?,role=?,email=?,featured=?,photo_data=?,sort_order=? WHERE id=?', [l.initials, l.name, l.role, l.email || '', l.featured ? 1 : 0, l.photo_data || '', l.sort_order || 0, l.id]);
 } else {
-_db.run('INSERT INTO leaders (initials,name,role,email,featured,sort_order) VALUES (?,?,?,?,?,?)', [l.initials || '??', l.name || '', l.role || '', l.email || '', l.featured ? 1 : 0, l.sort_order || 0]);
+_db.run('INSERT INTO leaders (initials,name,role,email,featured,photo_data,sort_order) VALUES (?,?,?,?,?,?,?)', [l.initials || '??', l.name || '', l.role || '', l.email || '', l.featured ? 1 : 0, l.photo_data || '', l.sort_order || 0]);
 }
 await persist();
 }
