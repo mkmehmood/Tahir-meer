@@ -252,7 +252,7 @@ export async function initDB() {
 if (_db) return _db;
 _SQL = await new Promise((res, rej) => {
 const sc = document.createElement('script');
-sc.src = 'js/sql-wasm.js?v=1787053330';
+sc.src = 'js/sql-wasm.js?v=1787370110';
 sc.onload = () => initSqlJs({
   locateFile: () => 'js/sql-wasm.wasm',
   // Compile the WASM module directly from an ArrayBuffer instead of

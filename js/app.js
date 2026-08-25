@@ -6,12 +6,12 @@
 // ================================================================
 import { initDB, getAllSettings, getPrograms, getLeaders, getEvents,
          getPages, getPage, getGallery, addSubmission, addMessage, addDonation }
-  from './db.js?v=1787053330';
-import { saveRegistrationToCloud, saveDonationToCloud } from './firebase.js?v=1787053330';
-import { fetchAllSiteContent, subscribeToSiteContent } from './cloud.js?v=1787053330';
-import { initTranslations, prefetchAllTranslations, translateAll } from './translate.js?v=1787053330';
-import { t, EN } from './lang.js?v=1787053330';
-import { iconHTML } from './icons.js?v=1787053330';
+  from './db.js?v=1787370110';
+import { saveRegistrationToCloud, saveDonationToCloud } from './firebase.js?v=1787370110';
+import { fetchAllSiteContent, subscribeToSiteContent } from './cloud.js?v=1787370110';
+import { initTranslations, prefetchAllTranslations, translateAll } from './translate.js?v=1787370110';
+import { t, EN } from './lang.js?v=1787370110';
+import { iconHTML } from './icons.js?v=1787370110';
 
 // ── State ─────────────────────────────────────────────────────
 let S    = {};   // flat settings object
