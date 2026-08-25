@@ -534,8 +534,8 @@ Reset
 <!-- /admin-app -->
 </div>
 <script type="module">
-import { initDB, getAllSettings, setSettings, getPrograms, upsertProgram, deleteProgram, getLeaders, upsertLeader, deleteLeader, getEvents, upsertEvent, deleteEvent, getPages, upsertPage, getGallery, addGalleryItem, deleteGalleryItem, updateGalleryCaption, getSubmissions, updateSubmissionStatus, deleteSubmission, countSubmissions, countNew, getMessages, addDonation, getDonations, updateDonationStatus, deleteDonation, countDonations, countUnverified, exportBlob, resetDB } from './js/db.js?v=1787053330';
-import { pushSettings, pushPrograms, pushLeaders, pushEvents, pushPages, pushGallery, fetchAllSiteContent } from './js/cloud.js?v=1787053330';
+import { initDB, getAllSettings, setSettings, getPrograms, upsertProgram, deleteProgram, getLeaders, upsertLeader, deleteLeader, getEvents, upsertEvent, deleteEvent, getPages, upsertPage, getGallery, addGalleryItem, deleteGalleryItem, updateGalleryCaption, getSubmissions, updateSubmissionStatus, deleteSubmission, countSubmissions, countNew, getMessages, addDonation, getDonations, updateDonationStatus, deleteDonation, countDonations, countUnverified, exportBlob, resetDB } from './js/db.js?v=1787370110';
+import { pushSettings, pushPrograms, pushLeaders, pushEvents, pushPages, pushGallery, fetchAllSiteContent } from './js/cloud.js?v=1787370110';
 
 // ── Cloud sync helper: push a collection array after every local write ────────
 async function syncToCloud() {
@@ -611,7 +611,13 @@ async function boot() {
     showToast('Cloud sync complete ✓', 'success');
   } catch (err) {
     console.warn('[Admin] Firestore sync failed or timed out:', err.message);
-    showToast('Offline — using local data', 'warn');
+    const isPermissionDenied = /permission[- ]denied/i.test(err.message || err.code || '');
+    showToast(
+      isPermissionDenied
+        ? '⚠ Cloud read blocked — check Firestore rules are deployed'
+        : 'Offline — using local data',
+      isPermissionDenied ? 'error' : 'warn'
+    );
     return; // local data (already rendered above) remains authoritative
   }
 
@@ -679,6 +685,28 @@ function showToast(msg, type='info') {
   clearTimeout(toast._t);
   toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 3000);
 }
+
+// ── Cloud sync failure handler ──────────────────────────────────────────────
+// Every pushSettings/pushPrograms/etc. call below routes failures through
+// this instead of a silent console.warn. Without this, a permission-denied
+// error (e.g. outdated Firestore rules not yet deployed) would leave the
+// admin believing their save worked — local SQLite succeeds and shows
+// "Saved ✓" regardless, while the cloud write silently fails in the
+// background with zero visible indication anything is wrong.
+let _cloudErrorShownAt = 0;
+function onCloudSyncError(context, err) {
+  console.warn(`[Cloud] ${context} failed:`, err?.message || err);
+  // Throttle to avoid a wall of toasts if several syncs fail back-to-back
+  const now = Date.now();
+  if (now - _cloudErrorShownAt < 4000) return;
+  _cloudErrorShownAt = now;
+
+  const isPermissionDenied = /permission[- ]denied/i.test(err?.message || err?.code || '');
+  const msg = isPermissionDenied
+    ? '⚠ Cloud save blocked — check Firestore security rules are deployed'
+    : `⚠ Cloud sync failed: ${context}`;
+  showToast(msg, 'error');
+}
 let _sidebarBound = false;
 function bindSidebar() {
 if (_sidebarBound) return;   // avoid stacking duplicate listeners on re-login
@@ -733,7 +761,7 @@ window.saveFields = async (keys, btn) => {
 const obj = {};
 keys.forEach(k => { const el = document.getElementById('e-' + k); if (el) { obj[k] = el.value; S[k] = el.value; } });
 await setSettings(obj);
-await pushSettings(getAllSettings()).catch(e => console.warn('[Cloud] settings sync failed:', e.message));
+await pushSettings(getAllSettings()).catch(e => onCloudSyncError('Settings', e));
 flashBtn(btn); showSaved();
 };
 window.quickSave = async () => {
@@ -741,7 +769,7 @@ const keys = ['siteName', 'contactPhone', 'contactEmail'];
 const obj = {};
 keys.forEach(k => { const el = document.getElementById('q-' + k); if (!el) return; obj[k] = el.value; S[k] = el.value; const e2 = document.getElementById('e-' + k); if (e2) e2.value = el.value; });
 await setSettings(obj);
-await pushSettings(getAllSettings()).catch(e => console.warn('[Cloud] quickSave sync failed:', e.message));
+await pushSettings(getAllSettings()).catch(e => onCloudSyncError('Quick Save', e));
 flashBtn(document.getElementById('qSaveBtn')); showSaved();
 };
 window.handleLogoUpload = async (input) => {
@@ -754,7 +782,7 @@ await setSettings({ logoData: data });
 S.logoData = data;
 const lp = document.getElementById('logoPreview');
 if (lp) { lp.src = data; lp.classList.add('show'); }
-await pushSettings(getAllSettings()).catch(e => console.warn('[Cloud] logo sync:', e.message));
+await pushSettings(getAllSettings()).catch(e => onCloudSyncError('Logo', e));
 showToast('Logo updated & synced ✓', 'success');
 showSaved();
 };
@@ -765,7 +793,7 @@ await setSettings({ logoData: '' });
 S.logoData = '';
 const lp = document.getElementById('logoPreview');
 if (lp) { lp.src = ''; lp.classList.remove('show'); }
-await pushSettings(getAllSettings()).catch(e => console.warn('[Cloud] logo clear:', e.message));
+await pushSettings(getAllSettings()).catch(e => onCloudSyncError('Logo removal', e));
 showToast('Logo removed & synced ✓', 'success');
 showSaved();
 };
@@ -785,9 +813,9 @@ el.appendChild(r);
 });
 }
 const _pc = {};
-window.upProg = (id, field, val) => { if (!_pc[id]) { const p = getPrograms().find(x => x.id === id); _pc[id] = p ? { ...p } : {}; } _pc[id][field] = val; clearTimeout(_pc[id]._t); _pc[id]._t = setTimeout(async () => { await upsertProgram(_pc[id]); await pushPrograms(getPrograms()).catch(e => console.warn('[Cloud]', e.message)); showSaved(); }, 600); };
-window.delProg = async id => { if (!confirm('Remove?')) return; await deleteProgram(id); await pushPrograms(getPrograms()).catch(e => console.warn('[Cloud]', e.message)); renderProgramsEd(); showSaved(); };
-window.addProgram = async () => { await upsertProgram({ icon_name: 'handshake', color: '#6D28D9', title: 'New Program', desc: '', sort_order: getPrograms().length }); await pushPrograms(getPrograms()).catch(e => console.warn('[Cloud]', e.message)); renderProgramsEd(); showSaved(); };
+window.upProg = (id, field, val) => { if (!_pc[id]) { const p = getPrograms().find(x => x.id === id); _pc[id] = p ? { ...p } : {}; } _pc[id][field] = val; clearTimeout(_pc[id]._t); _pc[id]._t = setTimeout(async () => { await upsertProgram(_pc[id]); await pushPrograms(getPrograms()).catch(e => onCloudSyncError('Program', e)); showSaved(); }, 600); };
+window.delProg = async id => { if (!confirm('Remove?')) return; await deleteProgram(id); await pushPrograms(getPrograms()).catch(e => onCloudSyncError('Program delete', e)); renderProgramsEd(); showSaved(); };
+window.addProgram = async () => { await upsertProgram({ icon_name: 'handshake', color: '#6D28D9', title: 'New Program', desc: '', sort_order: getPrograms().length }); await pushPrograms(getPrograms()).catch(e => onCloudSyncError('New program', e)); renderProgramsEd(); showSaved(); };
 function renderLeadersEd() {
 const el = document.getElementById('leadersEditor'); if (!el) return;
 el.innerHTML = '';
@@ -825,9 +853,9 @@ el.appendChild(r);
 });
 }
 const _lc = {};
-window.upLead = (id, f, v) => { if (!_lc[id]) { const l = getLeaders().find(x => x.id === id); _lc[id] = l ? { ...l } : {}; } _lc[id][f] = v; clearTimeout(_lc[id]._t); _lc[id]._t = setTimeout(async () => { await upsertLeader(_lc[id]); await pushLeaders(getLeaders()).catch(e => console.warn('[Cloud]', e.message)); showSaved(); renderLeadersEd(); }, 700); };
-window.delLead = async id => { if (!confirm('Remove?')) return; await deleteLeader(id); await pushLeaders(getLeaders()).catch(e => console.warn('[Cloud]', e.message)); renderLeadersEd(); showSaved(); };
-window.addLeader = async () => { await upsertLeader({ initials: 'NEW', name: 'New Member', role: 'Role', email: '', featured: 0, photo_data: '', sort_order: getLeaders().length }); await pushLeaders(getLeaders()).catch(e => console.warn('[Cloud]', e.message)); renderLeadersEd(); showSaved(); };
+window.upLead = (id, f, v) => { if (!_lc[id]) { const l = getLeaders().find(x => x.id === id); _lc[id] = l ? { ...l } : {}; } _lc[id][f] = v; clearTimeout(_lc[id]._t); _lc[id]._t = setTimeout(async () => { await upsertLeader(_lc[id]); await pushLeaders(getLeaders()).catch(e => onCloudSyncError('Leader', e)); showSaved(); renderLeadersEd(); }, 700); };
+window.delLead = async id => { if (!confirm('Remove?')) return; await deleteLeader(id); await pushLeaders(getLeaders()).catch(e => onCloudSyncError('Leader delete', e)); renderLeadersEd(); showSaved(); };
+window.addLeader = async () => { await upsertLeader({ initials: 'NEW', name: 'New Member', role: 'Role', email: '', featured: 0, photo_data: '', sort_order: getLeaders().length }); await pushLeaders(getLeaders()).catch(e => onCloudSyncError('New leader', e)); renderLeadersEd(); showSaved(); };
 window.handleLeaderPhoto = async (id, input) => {
 const file = input.files[0];
 if (!file) return;
@@ -846,7 +874,7 @@ const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
 if (!_lc[id]) { const l = getLeaders().find(x => x.id === id); _lc[id] = l ? {...l} : {}; }
 _lc[id].photo_data = dataUrl;
 await upsertLeader(_lc[id]);
-await pushLeaders(getLeaders()).catch(e => console.warn('[Cloud]', e.message));
+await pushLeaders(getLeaders()).catch(e => onCloudSyncError('Leader photo', e));
 showToast('Photo uploaded & synced ✓', 'success');
 showSaved();
 renderLeadersEd();
@@ -883,9 +911,9 @@ el.appendChild(r);
 });
 }
 const _ec = {};
-window.upEv = (id, f, v) => { if (!_ec[id]) { const ev = getEvents().find(x => x.id === id); _ec[id] = ev ? { ...ev } : {}; } _ec[id][f] = v; clearTimeout(_ec[id]._t); _ec[id]._t = setTimeout(async () => { await upsertEvent(_ec[id]); await pushEvents(getEvents()).catch(e => console.warn('[Cloud]', e.message)); showSaved(); }, 600); };
-window.delEv = async id => { if (!confirm('Remove?')) return; await deleteEvent(id); await pushEvents(getEvents()).catch(e => console.warn('[Cloud]', e.message)); renderEventsEd(); showSaved(); };
-window.addEvent = async () => { await upsertEvent({ day: '01', month: 'Jan', tag: 'Event', title: 'New Event', time_str: '', place: '', sort_order: getEvents().length }); await pushEvents(getEvents()).catch(e => console.warn('[Cloud]', e.message)); renderEventsEd(); showSaved(); };
+window.upEv = (id, f, v) => { if (!_ec[id]) { const ev = getEvents().find(x => x.id === id); _ec[id] = ev ? { ...ev } : {}; } _ec[id][f] = v; clearTimeout(_ec[id]._t); _ec[id]._t = setTimeout(async () => { await upsertEvent(_ec[id]); await pushEvents(getEvents()).catch(e => onCloudSyncError('Event', e)); showSaved(); }, 600); };
+window.delEv = async id => { if (!confirm('Remove?')) return; await deleteEvent(id); await pushEvents(getEvents()).catch(e => onCloudSyncError('Event delete', e)); renderEventsEd(); showSaved(); };
+window.addEvent = async () => { await upsertEvent({ day: '01', month: 'Jan', tag: 'Event', title: 'New Event', time_str: '', place: '', sort_order: getEvents().length }); await pushEvents(getEvents()).catch(e => onCloudSyncError('New event', e)); renderEventsEd(); showSaved(); };
 function renderPagesEd() {
 const el = document.getElementById('pagesEditor'); if (!el) return;
 el.innerHTML = '';
@@ -902,13 +930,13 @@ el.appendChild(c);
 });
 }
 const _pgc = {};
-window.upPage = (id, f, v) => { if (!_pgc[id]) { const pg = getPages().find(x => x.id === id); _pgc[id] = pg ? { ...pg } : {}; } _pgc[id][f] = v; clearTimeout(_pgc[id]._t); _pgc[id]._t = setTimeout(async () => { await upsertPage(_pgc[id]); await pushPages(getPages()).catch(e => console.warn('[Cloud]', e.message)); showSaved(); renderPagesEd(); }, 700); };
+window.upPage = (id, f, v) => { if (!_pgc[id]) { const pg = getPages().find(x => x.id === id); _pgc[id] = pg ? { ...pg } : {}; } _pgc[id][f] = v; clearTimeout(_pgc[id]._t); _pgc[id]._t = setTimeout(async () => { await upsertPage(_pgc[id]); await pushPages(getPages()).catch(e => onCloudSyncError('Page', e)); showSaved(); renderPagesEd(); }, 700); };
 async function renderGalleryAdmin() {
 const el = document.getElementById('galleryAdminGrid'); if (!el) return;
 const items = getGallery();
 el.innerHTML = items.map(item => `<div class="gallery-admin-item"><img src="${esc(item.data_url)}" alt="${esc(item.caption)}"/><button class="g-del" onclick="delGalleryItem(${item.id})" title="Delete">✕</button>${item.caption ? '<div class="g-cap">' + esc(item.caption) + '</div>' : ''}</div>`).join('') || '<p style="color:#475569;font-size:13px">No photos uploaded yet.</p>';
 }
-window.delGalleryItem = async id => { if (!confirm('Delete this photo?')) return; await deleteGalleryItem(id); await pushGallery(getGallery().map(g => ({ ...g, data_url: g.data_url || '' }))).catch(e => console.warn('[Cloud]', e.message)); renderGalleryAdmin(); showToast('Photo deleted & synced ✓','success'); showSaved(); };
+window.delGalleryItem = async id => { if (!confirm('Delete this photo?')) return; await deleteGalleryItem(id); await pushGallery(getGallery().map(g => ({ ...g, data_url: g.data_url || '' }))).catch(e => onCloudSyncError('Gallery delete', e)); renderGalleryAdmin(); showToast('Photo deleted & synced ✓','success'); showSaved(); };
 window.handleGalleryUpload = async (input) => {
 const files = Array.from(input.files);
 const caption = document.getElementById('galleryCaption')?.value || '';
@@ -934,7 +962,7 @@ reader.readAsDataURL(file);
 });
 }
 await renderGalleryAdmin();
-await pushGallery(getGallery().map(g => ({ ...g, data_url: g.data_url || '' }))).catch(e => console.warn('[Cloud]', e.message));
+await pushGallery(getGallery().map(g => ({ ...g, data_url: g.data_url || '' }))).catch(e => onCloudSyncError('Gallery upload', e));
 showToast('Gallery updated & synced ✓', 'success');
 showSaved();
 input.value = '';
@@ -992,7 +1020,7 @@ el.appendChild(r);
 });
 }
 window.doExport = () => { const b = exportBlob(); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'araain_bannu_db_' + Date.now() + '.sqlite'; a.click(); };
-window.doReset = async () => { if (!confirm('Reset ALL data to defaults? This cannot be undone.')) return; await resetDB(); S = getAllSettings(); populateAll(); renderProgramsEd(); renderLeadersEd(); renderEventsEd(); renderPagesEd(); renderGalleryAdmin(); window.renderSubs(); renderMsgs(); renderDash(); await syncToCloud().catch(e => console.warn('[Cloud] reset sync:', e.message)); showSaved(); alert('Reset complete. Firestore updated.'); };
+window.doReset = async () => { if (!confirm('Reset ALL data to defaults? This cannot be undone.')) return; await resetDB(); S = getAllSettings(); populateAll(); renderProgramsEd(); renderLeadersEd(); renderEventsEd(); renderPagesEd(); renderGalleryAdmin(); window.renderSubs(); renderMsgs(); renderDash(); await syncToCloud().catch(e => onCloudSyncError('Reset', e)); showSaved(); alert('Reset complete. Firestore updated.'); };
 
 // ── Mobile sidebar drawer — declared BEFORE boot() so bindSidebar()
 //    can safely call toggleSidebar() the moment the DOM is ready ──────────────
