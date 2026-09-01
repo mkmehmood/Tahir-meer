@@ -8,6 +8,41 @@
 //
 //  admin.html uses:
 //    • push*() helpers         — write after every admin save
+//
+//  ── Firestore document structure ──────────────────────────────
+//  Collection: siteConfig
+//  One document per key in DOCS below. This is the cloud mirror of
+//  the local SQLite tables in js/db.js — same fields, different
+//  storage. index.html reads these documents (public, no login);
+//  admin.html writes them after every edit.
+//
+//    siteConfig/settings   — flat key→value object (merge: true on write)
+//                             mirrors the `settings` SQLite table
+//                             (key TEXT PRIMARY KEY, value TEXT)
+//
+//    siteConfig/programs   — { items: [ {id, icon_name, color, title,
+//                             desc, sort_order}, ... ] }
+//    siteConfig/leaders    — { items: [ {id, initials, name, role, email,
+//                             featured, photo_data, sort_order}, ... ] }
+//    siteConfig/events     — { items: [ {id, day, month, tag, title,
+//                             time_str, place, sort_order}, ... ] }
+//    siteConfig/pages      — { items: [ {id, slug, label, title, body,
+//                             published, sort_order}, ... ] }
+//    siteConfig/gallery    — { items: [ {id, data_url, caption,
+//                             sort_order}, ... ] }
+//
+//  Each non-settings doc is written as a whole-array replace
+//  (setDoc without merge) — admin.html always pushes the FULL
+//  current array for that collection, not a single item.
+//
+//  ── Auth requirement for writes ───────────────────────────────
+//  firestore.rules only allows writes to siteConfig/* when
+//  request.auth.uid matches the hard-coded admin UID. That means
+//  every push*() call below MUST run on a Firebase App instance
+//  that has an authenticated admin session — see the `app` export
+//  and the note in admin.html's login script for how that's wired
+//  up (both must share the same App instance, or writes fail with
+//  [permission-denied] even while the UI shows you as logged in).
 // ================================================================
 
 import { initializeApp, getApps }
@@ -27,7 +62,7 @@ const FIREBASE_CONFIG = {
 };
 
 const _existingApp = getApps().find(a => a.name === 'awc-cloud');
-const app = _existingApp || initializeApp(FIREBASE_CONFIG, 'awc-cloud');
+export const app = _existingApp || initializeApp(FIREBASE_CONFIG, 'awc-cloud');
 export const db = getFirestore(app);
 
 // ── siteConfig document names ─────────────────────────────────

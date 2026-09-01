@@ -22,7 +22,7 @@
 //  Old cache keys are cleaned up automatically on init.
 // ================================================================
 
-import { EN, NO_TRANSLATE, DICT_HASH, setUrCache } from './lang.js?v=1787370110';
+import { EN, NO_TRANSLATE, DICT_HASH, setUrCache } from './lang.js?v=1788154543';
 
 // ── Storage keys ──────────────────────────────────────────────
 const LS_KEY  = `ab_translations_${DICT_HASH}`;
