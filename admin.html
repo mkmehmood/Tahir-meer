@@ -6,13 +6,13 @@
 <title>ARAAIN BANNU Admin Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="styles.css?v=1784105824"/>
-<link rel="icon" href="icons/favicon.ico" sizes="any"/>
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png"/>
-<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png"/>
-<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png"/>
+<link rel="stylesheet" href="styles.css?v=1788233808"/>
+<link rel="icon" href="icons/favicon.ico?v=1788233808" sizes="any"/>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png?v=1788233808"/>
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png?v=1788233808"/>
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png?v=1788233808"/>
 <meta name="theme-color" content="#6D28D9"/>
-<link rel="manifest" href="manifest.json"/>
+<link rel="manifest" href="manifest.json?v=1788233808"/>
 </head>
 <body class="admin-body">
 
@@ -534,8 +534,8 @@ Reset
 <!-- /admin-app -->
 </div>
 <script type="module">
-import { initDB, getAllSettings, setSettings, getPrograms, upsertProgram, deleteProgram, getLeaders, upsertLeader, deleteLeader, getEvents, upsertEvent, deleteEvent, getPages, upsertPage, getGallery, addGalleryItem, deleteGalleryItem, updateGalleryCaption, getSubmissions, updateSubmissionStatus, deleteSubmission, countSubmissions, countNew, getMessages, addDonation, getDonations, updateDonationStatus, deleteDonation, countDonations, countUnverified, exportBlob, resetDB } from './js/db.js?v=1787370110';
-import { pushSettings, pushPrograms, pushLeaders, pushEvents, pushPages, pushGallery, fetchAllSiteContent } from './js/cloud.js?v=1787370110';
+import { initDB, getAllSettings, setSettings, getPrograms, upsertProgram, deleteProgram, getLeaders, upsertLeader, deleteLeader, getEvents, upsertEvent, deleteEvent, getPages, upsertPage, getGallery, addGalleryItem, deleteGalleryItem, updateGalleryCaption, getSubmissions, updateSubmissionStatus, deleteSubmission, countSubmissions, countNew, getMessages, addDonation, getDonations, updateDonationStatus, deleteDonation, countDonations, countUnverified, exportBlob, resetDB } from './js/db.js?v=1788233808';
+import { pushSettings, pushPrograms, pushLeaders, pushEvents, pushPages, pushGallery, fetchAllSiteContent } from './js/cloud.js?v=1788233808';
 
 // ── Cloud sync helper: push a collection array after every local write ────────
 async function syncToCloud() {
@@ -610,13 +610,13 @@ async function boot() {
     await _applyCloudSync(cloud);
     showToast('Cloud sync complete ✓', 'success');
   } catch (err) {
-    console.warn('[Admin] Firestore sync failed or timed out:', err.message);
-    const isPermissionDenied = /permission[- ]denied/i.test(err.message || err.code || '');
+    console.warn('[Admin] Firestore sync failed or timed out:', err.code, err.message);
+    const isTimeout = err.message === 'Cloud sync timed out';
+    const detail = isTimeout ? 'timed out' : (err.code ? `[${err.code}]` : (err.message || '').slice(0, 70));
     showToast(
-      isPermissionDenied
-        ? '⚠ Cloud read blocked — check Firestore rules are deployed'
-        : 'Offline — using local data',
-      isPermissionDenied ? 'error' : 'warn'
+      isTimeout ? 'Offline — using local data' : `⚠ Cloud read failed on load — ${detail}`,
+      isTimeout ? 'warn' : 'error',
+      isTimeout ? 3000 : 8000
     );
     return; // local data (already rendered above) remains authoritative
   }
@@ -663,14 +663,15 @@ async function _applyCloudSync(cloud) {
 }
 
 // ── Toast notification ────────────────────────────────────────────────────────
-function showToast(msg, type='info') {
+function showToast(msg, type='info', duration=3000) {
   let toast = document.getElementById('adminToast');
   if (!toast) {
     toast = document.createElement('div');
     toast.id = 'adminToast';
     toast.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
       z-index:9999;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:600;
-      font-family:'Inter',sans-serif;transition:opacity .3s;pointer-events:none;white-space:nowrap`;
+      font-family:'Inter',sans-serif;transition:opacity .3s;pointer-events:none;
+      max-width:min(92vw,520px);white-space:normal;text-align:center;line-height:1.5`;
     document.body.appendChild(toast);
   }
   const colours = {
@@ -683,7 +684,7 @@ function showToast(msg, type='info') {
   toast.textContent = msg;
   toast.style.opacity = '1';
   clearTimeout(toast._t);
-  toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+  toast._t = setTimeout(() => { toast.style.opacity = '0'; }, duration);
 }
 
 // ── Cloud sync failure handler ──────────────────────────────────────────────
@@ -695,17 +696,19 @@ function showToast(msg, type='info') {
 // background with zero visible indication anything is wrong.
 let _cloudErrorShownAt = 0;
 function onCloudSyncError(context, err) {
-  console.warn(`[Cloud] ${context} failed:`, err?.message || err);
+  const code    = err?.code || '';
+  const message = err?.message || String(err);
+  console.warn(`[Cloud] ${context} failed:`, code, message);
+
   // Throttle to avoid a wall of toasts if several syncs fail back-to-back
   const now = Date.now();
   if (now - _cloudErrorShownAt < 4000) return;
   _cloudErrorShownAt = now;
 
-  const isPermissionDenied = /permission[- ]denied/i.test(err?.message || err?.code || '');
-  const msg = isPermissionDenied
-    ? '⚠ Cloud save blocked — check Firestore security rules are deployed'
-    : `⚠ Cloud sync failed: ${context}`;
-  showToast(msg, 'error');
+  // Show the ACTUAL Firebase error code/message rather than guessing —
+  // this makes the real cause visible on-screen without needing DevTools.
+  const detail = code ? `[${code}]` : (message ? message.slice(0, 70) : 'unknown error');
+  showToast(`⚠ ${context} cloud sync failed — ${detail}`, 'error', 8000);
 }
 let _sidebarBound = false;
 function bindSidebar() {
@@ -1073,29 +1076,34 @@ window.__resetBootState = () => { _bootedOnce = false; };
 
 <!-- ── Firebase v10 Modular SDK — Auth + Firestore ── -->
 <script type="module">
-import { initializeApp }
-  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, setDoc, serverTimestamp }
+import { collection, query, orderBy, onSnapshot, doc, getDoc, setDoc, serverTimestamp }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+// ── Reuse the SAME Firebase App instance that js/cloud.js uses for the
+//    Quick Save / auto-save writes (pushSettings, pushPrograms, ...).
+//
+//    Firebase Auth state is scoped PER named App instance. This block used
+//    to call initializeApp(FIREBASE_CONFIG, 'admin-app') and sign in there —
+//    a completely separate instance from cloud.js's 'awc-cloud' app. That
+//    left 'awc-cloud' (the instance actually performing every siteConfig
+//    write) permanently unauthenticated, so firestore.rules always saw
+//    request.auth == null and rejected every save with [permission-denied],
+//    even though the login itself succeeded and the UI showed you as
+//    logged in. Importing { app, db } from cloud.js instead of creating a
+//    new instance is the fix — signing in here now authenticates the exact
+//    app instance the push*() writes go through.
+import { app, db }
+  from './js/cloud.js?v=1788233808';
 
-// ─── 🔧 REPLACE WITH YOUR FIREBASE CONFIG ─────────────────────────────────
-const FIREBASE_CONFIG = {
-  apiKey:            "AIzaSyDQWTvTbXX6o1QvHy5E9HeD5k0DmySlsPg",
-  authDomain:        "tahir-meer.firebaseapp.com",
-  projectId:         "tahir-meer",
-  storageBucket:     "tahir-meer.firebasestorage.app",
-  messagingSenderId: "275167373986",
-  appId:             "1:275167373986:web:0eef7d041ca22df4c3c5fb"
-};
-// ─── 🔧 PASTE YOUR ADMIN UID HERE (from Firebase Console → Authentication) ─
-const ADMIN_UID = "jYPaIx2KerQJPZNU3w19XxoQuYt1";
+// ─── 🔧 Admin identity — matched by EMAIL, not UID ─────────────────────────
+// Must exactly match firestore.rules' isAdmin() check (Firebase Auth
+// normalizes emails to lowercase, hence the .toLowerCase() at each
+// comparison site below).
+const ADMIN_EMAIL = "3tahirmeer@gmail.com";
 // ──────────────────────────────────────────────────────────────────────────
 
-const app   = initializeApp(FIREBASE_CONFIG, 'admin-app');
-const auth  = getAuth(app);
-const db    = getFirestore(app);
+const auth = getAuth(app);
 
 let allDocs     = [];   // full snapshot cache
 let unsubscribe = null; // onSnapshot unsubscriber
@@ -1435,12 +1443,12 @@ onAuthStateChanged(auth, user => {
   // dashboard right after the admin explicitly logged out.
   if (_isLoggingOut) return;
 
-  if (user && user.uid === ADMIN_UID) {
+  if (user && user.email && user.email.toLowerCase() === ADMIN_EMAIL) {
     showDashboard(user);
   } else {
     showLogin();
     if (user) {
-      // Logged in but NOT the admin UID → sign them out immediately
+      // Logged in but NOT the admin email → sign them out immediately
       signOut(auth);
       showError('Access denied. You are not authorised as admin.');
     }
@@ -1463,7 +1471,7 @@ window.fbLogin = async function() {
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     // onAuthStateChanged fires automatically after this — no manual show needed
-    if (cred.user.uid !== ADMIN_UID) {
+    if (!cred.user.email || cred.user.email.toLowerCase() !== ADMIN_EMAIL) {
       await signOut(auth);
       showError('Access denied. This account is not authorised.');
     }

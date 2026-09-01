@@ -68,3 +68,33 @@ Open: http://localhost:8080 — or open index.html directly in Chrome/Edge/Firef
 | gallery      | Photos (base64 + captions)                        |
 | submissions  | Membership applications                           |
 | messages     | Contact form submissions                          |
+
+### Firestore (cloud sync) — project `tahir-meer`
+
+Local SQLite is the source of truth in the browser; `js/cloud.js` mirrors
+six of the tables above to Firestore so `index.html` can render without
+running the SQLite/WASM layer, and so admin edits show up live on any
+open tab.
+
+| Firestore doc         | Mirrors SQLite table | Shape                                  |
+|------------------------|----------------------|-----------------------------------------|
+| `siteConfig/settings`  | `settings`            | flat `{ key: value, ... }` object       |
+| `siteConfig/programs`  | `programs`             | `{ items: [ {…row}, ... ] }`            |
+| `siteConfig/leaders`   | `leaders`              | `{ items: [ {…row}, ... ] }`            |
+| `siteConfig/events`    | `events`               | `{ items: [ {…row}, ... ] }`            |
+| `siteConfig/pages`     | `pages`                | `{ items: [ {…row}, ... ] }`            |
+| `siteConfig/gallery`   | `gallery`              | `{ items: [ {…row}, ... ] }`            |
+
+- `registrations` and `donations` collections (separate from `siteConfig`)
+  hold public form submissions, written via `js/firebase.js` — documented
+  in that file's doc comments.
+- Reads on `siteConfig/*` are public (`allow read: if true`); writes
+  require the signed-in Firebase Auth `uid` to match the admin UID
+  hard-coded in `firestore.rules` and in admin.html's login script.
+- `index.html` / `js/app.js` → `fetchAllSiteContent()` +
+  `subscribeToSiteContent()` (read-only, no auth needed).
+- `admin.html` → `pushSettings()`, `pushPrograms()`, `pushLeaders()`,
+  `pushEvents()`, `pushPages()`, `pushGallery()` (all in `js/cloud.js`),
+  fired after every local SQLite write. These MUST run on the same
+  authenticated Firebase App instance as the admin login — see the
+  comment block at the top of `js/cloud.js`.
